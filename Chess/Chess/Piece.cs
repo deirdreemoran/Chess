@@ -22,20 +22,5 @@ namespace ChessGame
             IsFirstMove = true;
             PieceValue = 0;
         }
-
-       
-        //RANDOM NUMBER GENERATOR
-        public Int64 Random64()
-        {
-            RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
-            var byteArray = new byte[64];
-            provider.GetBytes(byteArray);
-            Int64 randomInt64 = BitConverter.ToInt64(byteArray, 0);
-            Console.WriteLine(randomInt64);
-            return randomInt64;
-
-
-        }
     }
-
 }

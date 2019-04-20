@@ -52,13 +52,27 @@ namespace ChessGame
             List<List<Move>> allMoves = new List<List<Move>>();
             List<Move> moves = new List<Move>();
             List<Move> final = new List<Move>();
-            if ((moves = GetBlackPawnMoves(b)).Count != 0) { allMoves.Add(moves); }
-            if ((moves = CalculateBlackMoves(b.BR, "R", b.Blackpieces, b)).Count != 0) { allMoves.Add(moves); }
-            if ((moves = CalculateBlackMoves(b.BN, "N", b.Blackpieces, b)).Count != 0) { allMoves.Add(moves); }
-            if ((moves = CalculateBlackMoves(b.BK, "K", b.Blackpieces, b)).Count != 0) { allMoves.Add(moves); }
-            if ((moves = CalculateBlackMoves(b.BB, "B", b.Blackpieces, b)).Count != 0) { allMoves.Add(moves); }
-            if ((moves = CalculateBlackMoves(b.BQ, "R", b.Blackpieces, b)).Count != 0) { allMoves.Add(moves); }
-            if ((moves = CalculateBlackMoves(b.BQ, "B", b.Blackpieces, b)).Count != 0) { allMoves.Add(moves); }
+            if ((moves = GetBlackPawnMoves(b)).Count != 0) {
+                allMoves.Add(moves);
+            }
+            if ((moves = CalculateBlackMoves(b.BR, "R", b.Blackpieces, b)).Count != 0) {
+                allMoves.Add(moves);
+            }
+            if ((moves = CalculateBlackMoves(b.BN, "N", b.Blackpieces, b)).Count != 0) {
+                allMoves.Add(moves);
+            }
+            if ((moves = CalculateBlackMoves(b.BK, "K", b.Blackpieces, b)).Count != 0) {
+                allMoves.Add(moves);
+            }
+            if ((moves = CalculateBlackMoves(b.BB, "B", b.Blackpieces, b)).Count != 0) {
+                allMoves.Add(moves);
+            }
+            if ((moves = CalculateBlackMoves(b.BQ, "R", b.Blackpieces, b)).Count != 0) {
+                allMoves.Add(moves);
+            }
+            if ((moves = CalculateBlackMoves(b.BQ, "B", b.Blackpieces, b)).Count != 0) {
+                allMoves.Add(moves);
+            }
 
             System.Console.WriteLine();
             System.Console.WriteLine("computer");
@@ -205,17 +219,18 @@ namespace ChessGame
             Int64 result5 = 0L;
             Int64 result6 = 0L;
             Int64 result7 = 0L;
-            //for all valid forward one moves
+            
+            //for all valid forward by one moves
             result = (b.BP >> 8) & b.EmptySpaces;
-            result2 = (b.BP >> 7) & ~b.Blackpieces & b.Whitepieces & b.boardUtils.notColumnSeven;
-            result3 = (b.BP >> 9) & ~b.Blackpieces & b.Whitepieces & b.boardUtils.notColumnZero;
+            result2 = (b.BP >> 7) & ~b.Blackpieces & b.Whitepieces & b.boardUtils.notColumnZero;
+            result3 = (b.BP >> 9) & ~b.Blackpieces & b.Whitepieces & b.boardUtils.notColumnSeven;
             result4 = (b.BP >> 16) & ~b.Whitepieces & ~b.Blackpieces;
             result5 = (b.BP >> 8) & b.EmptySpaces;
             result6 = (result5 >> 8) & result4;
             result7 = ((b.boardUtils.blackFirstMove & b.BP) >> 16) & result6;
 
             // forward two 
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < Board.BoardSize; i++)
             {
                 if (((result >> i) & 1) == 1) { allValidMoves.Add(new Move(i, i + 8, b.pieceIdBoard[i].PieceValue, false)); }
                 if (((result2 >> i) & 1) == 1) { allValidMoves.Add(new Move(i, i + 7, b.pieceIdBoard[i].PieceValue, true)); }

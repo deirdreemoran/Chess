@@ -174,7 +174,7 @@ namespace ChessGame
         /******************************************************************
         *    Creates GUI pieces and sets values
         *******************************************************************/
-        private void CreateInterfaceAndSetPieceValues(Form form)
+        public void CreateInterfaceAndSetPieceValues(Form form)
         {
             form.Size = new Size(690, 715);
             form.BackgroundImage = boardUtils.boardImage;
@@ -281,7 +281,7 @@ namespace ChessGame
                 Int64 pieceMask = 1L << piece.PiecePosition;
                 Move newMove = new Move(startPiecePosition, piece.PiecePosition);
                 // If invalid move, reset piece color 
-                if (!newMove.IsaValidMove(allLegalMoves))
+                if (!newMove.IsValidMove(allLegalMoves))
                 {
                     SetPieceColor(startPiecePosition, Color.Transparent);
                 }
@@ -357,9 +357,9 @@ namespace ChessGame
         /******************************************************************
        *     Gets position on pieceIdBoard of specified piece
        ******************************************************************/
-        private int GetPosition(Int64 pieceMap)
+        public int GetPosition(Int64 piece)
         {
-            return (Convert.ToString(pieceMap, 2).Length) - 1;
+            return (Convert.ToString(piece, 2).Length) - 1;
         }
 
         /******************************************************************
@@ -431,7 +431,7 @@ namespace ChessGame
                 return true;
             }
 
-            returnMove = bestMove.EvaluateMoves(3, true, b);
+            returnMove = bestMove.EvaluateMoves(3, b);
 
             if (returnMove.Count == 1)
             {

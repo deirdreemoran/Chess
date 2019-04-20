@@ -14,11 +14,16 @@ namespace ChessGame
         public bool IsAttack { get; set; }
         public int KingPosition { get; set; }
 
-
         public Move()
         {
             To = 0;
             From = 0;
+        }
+
+        public Move(int pFrom, int pTo)
+        {
+            this.From = pFrom;
+            this.To = pTo;
         }
 
         public Move(int pTo, int pFrom, int pValue, bool pAttack)
@@ -28,27 +33,11 @@ namespace ChessGame
             this.Value = pValue;
             this.IsAttack = pAttack;
         }
-        public Move(int pFrom, int pTo)
-        {
-            this.From = pFrom;
-            this.To = pTo;
-        }
-       
 
-        public bool IsValidMove(List<Move> validMoves, int pos, int dest)
-        {
-
-            for (int i = 0; i < validMoves.Count; i++)
-            {
-                if (pos == validMoves[i].From && dest == validMoves[i].To)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public bool IsaValidMove(List<Move> validMoves)
+        /******************************************************************
+        *     Checks if selected move is in list of valid moves
+        ******************************************************************/
+        public bool IsValidMove(List<Move> validMoves)
         {
             foreach (Move m in validMoves)
             {
@@ -60,6 +49,9 @@ namespace ChessGame
             return false;
         }
 
+        /******************************************************************
+        *     Checks if selected move will result in check
+        ******************************************************************/
         public bool IsCheckMove(List<Move> validMoves, int pos, int dest, Board b, string player)
         {
             List<Move> valids = new List<Move>();
@@ -188,6 +180,10 @@ namespace ChessGame
             return false;
 
         }
+
+        /******************************************************************
+        *     Checks if selected move results in opponent check
+        ******************************************************************/
         public bool OpponentInCheck(List<Move> allLegalMoves, int pos, int dest, ref Board b, string player)
         {
             List<Move> valids = new List<Move>();
@@ -310,26 +306,28 @@ namespace ChessGame
                     }
                 }
                 return false;
-
             }
-
         }
 
-
-        public List<Move> EvaluateMoves(int depth, bool isMaximiser, Board b)
+        /******************************************************************
+        *     Evaluates best computer move using MinMax algorithm with 
+        *     alpha-beta pruning optimization
+        ******************************************************************/
+        public List<Move> EvaluateMoves(int depth, Board b)
         {
-            KingPosition = (Convert.ToString(b.BK, 2).Length) - 1;
+            KingPosition = b.GetPosition(b.WK);
             List<Move> tnewGameMoves = new List<Move>();
             Rules rules3 = new Rules();
             tnewGameMoves = rules3.GetComputerRules(b);
 
             List<Move> newGameMoves = tnewGameMoves.OrderByDescending(o => o.Value).ToList();
-            int alpha = -9999;
-            int beta = 9999;
-            int bestMove = -9999;
+            int alpha = Int32.MinValue;
+            int beta = Int32.MaxValue;
+            int bestMove = alpha;
             Move bestMoveFound = new Move();
             List<Move> returnList = new List<Move>();
             bool skip = false;
+
             for (int j = 0; j < newGameMoves.Count; j++)
             {
                 Move myMove = newGameMoves[j];
@@ -338,7 +336,6 @@ namespace ChessGame
                 string tempFromName = b.pieceIdBoard[myMove.From].PieceName;
                 int tempFromValue = b.pieceIdBoard[myMove.From].PieceValue;
                 AttackValue = 0;
-
 
                 Int64 startMask = 1L << b.pieceIdBoard[myMove.From].PiecePosition;
                 Int64 endMask = 1L << b.pieceIdBoard[myMove.To].PiecePosition;
@@ -429,12 +426,7 @@ namespace ChessGame
                     default:
                         break;
                 }
-                /*foreach(Piece ip in pieceArray)
-                 {
-                         Console.Write($"{ip.getPieceName} ");
-                 }
-                 Console.WriteLine();*/
-
+               
                 b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
                 b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
                 b.boardUtils.emptySpaces = ~b.Whitepieces & ~b.Blackpieces;
@@ -1071,221 +1063,7 @@ namespace ChessGame
         }
 
 
-        /*     private void makemove(Move myMove, long startMask, long endMask, long wP, long wR, long wN, long wB, long wQ, long wK, long bP, long bR, long bN, 
-                                     long bB, long bQ, long bK, long whitePieces, long blackPieces, longb.boardUtils.whiteFirstMove, longb.boardUtils.blackFirstMove, Piece[] b.pieceIdBoard)
-             {
-                     switch (b.pieceIdBoard[myMove.from].getPieceName)
-                     {
-                             case "Wp":
-                                      WP = ( WP & ~endMask) | startMask;
-                                     b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove & ~endMask);
-                                     break;
-                             case "Wn":
-                                      WN = ( WN & ~endMask) | startMask;
-                                     break;
-                             case "Wk":
-                                      WK = ( WK & ~endMask) | startMask;
-                                     break;
-                             case "Wb":
-                                      WB = ( WB & ~endMask) | startMask;
-                                     break;
-                             case "Wr":
-                                      WR = ( WR & ~endMask) | startMask;
-                                     break;
-                             case "Wq":
-                                      WQ = ( WQ & ~endMask) | startMask;
-                                     break;
-                             case "BP":
-                                      BP = ( BP & ~endMask) | startMask;
-                                     b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove & ~endMask);
-                                     break;
-                             case "BN":
-                                      BN = ( BN & ~endMask) | startMask;
-                                     break;
-                             case "BK":
-                                      BK = ( BK & ~endMask) | startMask;
-                                     break;
-                             case "BB":
-                                      BB = ( BB & ~endMask) | startMask;
-                                     break;
-                             case "BR":
-                                      BR = ( BR & ~endMask) | startMask;
-                                     break;
-                             case "BQ":
-                                      BQ = ( BQ & ~endMask) | startMask;
-                                     break;
-                             default:
-                                     break;
-                     }
-
-                     switch (b.pieceIdBoard[myMove.to].getPieceName)
-                     {
-                             case "Wp":
-                                     attackValue += 99;
-                                      WP =  WP ^ (startMask);
-                                     break;
-                             case "Wn":
-                                     attackValue += 99;
-                                      WN =  WN ^ (startMask);
-                                     break;
-                             case "Wk":
-                                     attackValue += 9999;
-                                      WK =  WK ^ (startMask);
-                                     break;
-                             case "Wb":
-                                     attackValue += 99;
-                                      WB =  WB ^ (startMask);
-                                     break;
-                             case "Wr":
-                                     attackValue += 99;
-                                      WR =  WR ^ (startMask);
-                                     break;
-                             case "Wq":
-                                     attackValue += 999;
-                                      WQ =  WQ ^ (startMask);
-                                     break;
-                             case "BP":
-                                     attackValue += -99;
-                                      BP =  BP ^ (startMask);
-                                     break;
-                             case "BN":
-                                      BN =  BN ^ (startMask);
-                                     attackValue += -99;
-                                     break;
-                             case "BK":
-                                      BK =  BK ^ (startMask);
-                                     attackValue += -9999;
-                                     break;
-                             case "BB":
-                                      BB =  BB ^ (startMask);
-                                     attackValue += -99;
-                                     break;
-                             case "BR":
-                                      BR =  BR ^ (startMask);
-                                     attackValue += -99;
-                                     break;
-                             case "BQ":
-                                      BQ =  BQ ^ (startMask);
-                                     attackValue += -999;
-                                     break;
-                             default:
-                                     break;
-                     }
-                      whitepieces =  WP |  WB |  WK |  WN |  WQ |  WR;
-                      blackpieces =  BP |  BB |  BK |  BN |  BQ |  BR;
-
-
-
-             }
-
-
-
-
-             private void undoMove(Move myMove, long startMask, long endMask, long wP, long wR, long wN, long wB, 
-                     long wQ, long wK, long bP, long bR, long bN, long bB, long bQ, long bK, long whitePieces, long blackPieces, longb.boardUtils.whiteFirstMove, longb.boardUtils.blackFirstMove, Piece[] b.pieceIdBoard)
-             {
-                     switch (b.pieceIdBoard[myMove.to].getPieceName)
-                     {
-                             case "Wp":
-                                      WP = ( WP & ~endMask) | startMask;
-                                     b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove & ~endMask);
-                                     break;
-                             case "Wn":
-                                      WN = ( WN & ~endMask) | startMask;
-                                     break;
-                             case "Wk":
-                                      WK = ( WK & ~endMask) | startMask;
-                                     break;
-                             case "Wb":
-                                      WB = ( WB & ~endMask) | startMask;
-                                     break;
-                             case "Wr":
-                                      WR = ( WR & ~endMask) | startMask;
-                                     break;
-                             case "Wq":
-                                      WQ = ( WQ & ~endMask) | startMask;
-                                     break;
-                             case "BP":
-                                      BP = ( BP & ~endMask) | startMask;
-                                     b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove & ~endMask);
-                                     break;
-                             case "BN":
-                                      BN = ( BN & ~endMask) | startMask;
-                                     break;
-                             case "BK":
-                                      BK = ( BK & ~endMask) | startMask;
-                                     break;
-                             case "BB":
-                                      BB = ( BB & ~endMask) | startMask;
-                                     break;
-                             case "BR":
-                                      BR = ( BR & ~endMask) | startMask;
-                                     break;
-                             case "BQ":
-                                      BQ = ( BQ & ~endMask) | startMask;
-                                     break;
-                             default:
-                                     break;
-                     }
-
-                     switch (b.pieceIdBoard[myMove.from].getPieceName)
-                     {
-                             case "Wp":
-                                     attackValue = 99;
-                                      WP =  WP ^ (startMask);
-                                     break;
-                             case "Wn":
-                                     attackValue += 99;
-                                      WN =  WN ^ (startMask);
-                                     break;
-                             case "Wk":
-                                     attackValue += 9999;
-                                      WK =  WK ^ (startMask);
-                                     break;
-                             case "Wb":
-                                     attackValue += 99;
-                                      WB =  WB ^ (startMask);
-                                     break;
-                             case "Wr":
-                                     attackValue += 99;
-                                      WR =  WR ^ (startMask);
-                                     break;
-                             case "Wq":
-                                     attackValue += 999;
-                                      WQ =  WQ ^ (startMask);
-                                     break;
-                             case "BP":
-                                     attackValue += -99;
-                                      BP =  BP ^ (startMask);
-                                     break;
-                             case "BN":
-                                      BN =  BN ^ (startMask);
-                                     attackValue += -99;
-                                     break;
-                             case "BK":
-                                      BK =  BK ^ (startMask);
-                                     attackValue += -9999;
-                                     break;
-                             case "BB":
-                                      BB =  BB ^ (startMask);
-                                     attackValue += -99;
-                                     break;
-                             case "BR":
-                                      BR =  BR ^ (startMask);
-                                     attackValue += -99;
-                                     break;
-                             case "BQ":
-                                      BQ =  BQ ^ (startMask);
-                                     attackValue += -999;
-                                     break;
-                             default:
-                                     break;
-                     }
-                      whitepieces =  WP |  WB |  WK |  WN |  WQ |  WR;
-                      blackpieces =  BP |  BB |  BK |  BN |  BQ |  BR;
-
-             }*/
-
+       
         public int EvaluateBoard(Piece[] pieceIdBoard)
         {
             int totalEvaluation = 0;
@@ -1354,22 +1132,7 @@ namespace ChessGame
             //for now, if there is an attack, choose the move to counteract attack
         }
 
-
-        //RANDOM NUMBER GENERATOR
-        public Int64 Random64()
-        {
-            RNGCryptoServiceProvider provider = new RNGCryptoServiceProvider();
-            var byteArray = new byte[64];
-            provider.GetBytes(byteArray);
-            Int64 randomInt64 = BitConverter.ToInt64(byteArray, 0);
-            Console.WriteLine(randomInt64);
-            return randomInt64;
-
-
-        }
-
-
-
+        
 
     }
 
