@@ -1,1 +1,2 @@
-# Chess application with UI developed using Windows Forms
+# Chess
+C# .NET WinForms chess application with user interface 
