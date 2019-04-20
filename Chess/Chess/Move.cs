@@ -326,7 +326,7 @@ namespace ChessGame
             int bestMove = alpha;
             Move bestMoveFound = new Move();
             List<Move> returnList = new List<Move>();
-            bool skip = false;
+            bool immediateAttack = false;
 
             for (int j = 0; j < newGameMoves.Count; j++)
             {
@@ -339,125 +339,15 @@ namespace ChessGame
 
                 Int64 startMask = 1L << b.pieceIdBoard[myMove.From].PiecePosition;
                 Int64 endMask = 1L << b.pieceIdBoard[myMove.To].PiecePosition;
-                switch (b.pieceIdBoard[myMove.From].PieceName)
-                {
-                    case "Wp":
-                        b.WP = (b.WP ^ startMask) | endMask;
-                        b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove ^ ~startMask) | endMask;
-                        break;
-                    case "Wn":
-                        b.WN = (b.WN ^ startMask) | endMask;
-                        break;
-                    case "Wk":
-                        b.WK = (b.WK ^ startMask) | endMask;
-                        break;
-                    case "Wb":
-                        b.WB = (b.WB ^ startMask) | endMask;
-                        break;
-                    case "Wr":
-                        b.WR = (b.WR ^ startMask) | endMask;
-                        break;
-                    case "Wq":
-                        b.WQ = (b.WQ ^ startMask) | endMask; ;
-                        break;
-                    case "BP":
-                        b.BP = (b.BP ^ startMask) | endMask;
-                        b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove ^ startMask) | endMask;
-                        break;
-                    case "BN":
-                        b.BN = (b.BN ^ startMask) | endMask;
-                        break;
-                    case "BK":
-                        b.BK = (b.BK & startMask) | endMask;
-                        break;
-                    case "BB":
-                        b.BB = (b.BB ^ startMask) | endMask;
-                        break;
-                    case "BR":
-                        b.BR = (b.BR ^ startMask) | endMask;
-                        break;
-                    case "BQ":
-                        b.BQ = (b.BQ ^ startMask) | endMask;
-                        break;
-                    default:
-                        break;
-                }
 
-                switch (b.pieceIdBoard[myMove.To].PieceName)
-                {
-                    case "Wp":
-                        b.WP = b.WP & ~endMask;
-                        b.boardUtils.whiteFirstMove = b.boardUtils.whiteFirstMove & ~endMask;
-                        break;
-                    case "Wn":
-                        b.WN = b.WN & ~endMask;
-                        break;
-                    case "Wk":
-                        b.WK = b.WK & ~endMask;
-                        break;
-                    case "Wb":
-                        b.WB = b.WB & ~endMask;
-                        break;
-                    case "Wr":
-                        b.WR = b.WR & ~endMask;
-                        break;
-                    case "Wq":
-                        b.WQ = b.WQ & ~endMask;
-                        break;
-                    case "BP":
-                        b.BP = b.BP & ~endMask;
-                        b.boardUtils.blackFirstMove = b.boardUtils.blackFirstMove & ~endMask;
-                        break;
-                    case "BN":
-                        b.BN = b.BN & ~endMask;
-                        break;
-                    case "BK":
-                        b.BK = b.BK & ~endMask;
-                        break;
-                    case "BB":
-                        b.BB = b.BB & ~endMask;
-                        break;
-                    case "BR":
-                        b.BR = b.BR & ~endMask;
-                        break;
-                    case "BQ":
-                        b.BQ = b.BQ & ~endMask;
-                        break;
-                    default:
-                        break;
-                }
-               
-                b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
-                b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
-                b.boardUtils.emptySpaces = ~b.Whitepieces & ~b.Blackpieces;
-                b.pieceIdBoard[myMove.To].PieceName = b.pieceIdBoard[myMove.From].PieceName;
-                b.pieceIdBoard[myMove.To].PieceValue = b.pieceIdBoard[myMove.From].PieceValue;
-                b.pieceIdBoard[myMove.From].PieceName = "-";
-                b.pieceIdBoard[myMove.From].PieceValue = 0;
-                //foreach (Piece ip in pieceArray)
-                //{
-                //      Console.Write($"{ip.getPieceName} ");
-                //}
-                //Console.WriteLine();
-                //make sure cannot be immediately attacked
-                List<Move> pnewGameMoves = rules3.GetRules(b);
-                foreach (Move m in pnewGameMoves)
-                {
-                    //if immediate attack after move, our move should only be made if value captured is greater than our ob.WN piece
-                    if (m.To == myMove.To)
-                    {
-                        if (tempToValue <= Math.Abs(b.pieceIdBoard[myMove.To].PieceValue))
-                        {
-                            skip = true;
-                        }
-                        //   if (pieceArray[myMove.to].getPieceName == "Bp" && myMove.isAttack == false)
+                //Make the move
+                MakeMove(b, myMove, startMask, endMask);
 
+                //check for immediate attack
+                immediateAttack = CheckForImmediateAttack(b, rules3, immediateAttack, myMove, tempToValue);
 
-
-                    }
-                }
-
-                if (skip == false)
+                // if none, get the best move
+                if (!immediateAttack)
                 {
                     int value = MinMax(depth - 1, false, alpha, beta, b);
 
@@ -473,113 +363,239 @@ namespace ChessGame
                     }
                 }
 
-                b.pieceIdBoard[myMove.From].PieceName = tempFromName;
-                b.pieceIdBoard[myMove.From].PieceValue = tempFromValue;
-                b.pieceIdBoard[myMove.To].PieceName = tempToName;
-                b.pieceIdBoard[myMove.To].PieceValue = tempToValue;
+                UndoMove(b, myMove, tempToName, tempToValue, tempFromName, tempFromValue, startMask, endMask);
 
-                switch (tempFromName)
-                {
-                    case "Wp":
-                        b.WP = (b.WP & ~endMask) | startMask;
-                        b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove & ~endMask) | startMask;
-                        break;
-                    case "Wn":
-                        b.WN = (b.WN & ~endMask) | startMask;
-                        break;
-                    case "Wk":
-                        b.WK = (b.WK & ~endMask) | startMask;
-                        break;
-                    case "Wb":
-                        b.WB = (b.WB & ~endMask) | startMask;
-                        break;
-                    case "Wr":
-                        b.WR = (b.WR & ~endMask) | startMask;
-                        break;
-                    case "Wq":
-                        b.WQ = (b.WQ & ~endMask) | startMask;
-                        break;
-                    case "BP":
-                        b.BP = (b.BP & ~endMask) | startMask;
-                        b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove & ~endMask) | startMask;
-                        break;
-                    case "BN":
-                        b.BN = (b.BN & ~endMask) | startMask;
-                        break;
-                    case "BK":
-                        b.BK = (b.BK & ~endMask) | startMask;
-                        break;
-                    case "BB":
-                        b.BB = (b.BB & ~endMask) | startMask;
-                        break;
-                    case "BR":
-                        b.BR = (b.BR & ~endMask) | startMask;
-                        break;
-                    case "BQ":
-                        b.BQ = (b.BQ & ~endMask) | startMask;
-                        break;
-                    default:
-                        break;
-                }
-
-                switch (tempToName)
-                {
-                    case "Wp":
-                        b.WP = (b.WP) | endMask;
-                        b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove) | endMask;
-                        break;
-                    case "Wn":
-                        b.WN = (b.WN) | endMask;
-                        break;
-                    case "Wk":
-                        b.WK = (b.WK) | endMask;
-                        break;
-                    case "Wb":
-                        b.WB = (b.WB) | endMask;
-                        break;
-                    case "Wr":
-                        b.WR = (b.WR) | endMask;
-                        break;
-                    case "Wq":
-                        b.WQ = (b.WQ) | endMask;
-                        break;
-                    case "BP":
-                        b.BP = (b.BP) | endMask;
-                        b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove) | endMask;
-                        break;
-                    case "BN":
-                        b.BN = (b.BN) | endMask;
-                        break;
-                    case "BK":
-                        b.BK = (b.BK) | endMask;
-                        break;
-                    case "BB":
-                        b.BB = (b.BB) | endMask;
-                        break;
-                    case "BR":
-                        b.BR = (b.BR) | endMask;
-                        break;
-                    case "BQ":
-                        b.BQ = (b.BQ) | endMask;
-                        break;
-                    default:
-                        break;
-                }
-
-                //  foreach (Piece ip in pieceArray)
-                //{
-                //      Console.Write($"{ip.getPieceName} ");
-                //}
-                // Console.WriteLine();
-
-                // Console.WriteLine();
-                b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
-                b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
-
-                skip = false;
+                immediateAttack = false;
             }
             List<Move> ret = returnList.OrderBy(o => o.Value).ToList();
             return ret;
+        }
+
+        private static bool CheckForImmediateAttack(Board b, Rules rules3, bool skip, Move myMove, int tempToValue)
+        {
+            List<Move> pnewGameMoves = rules3.GetRules(b);
+            foreach (Move m in pnewGameMoves)
+            {
+                //if immediate attack after move, our move should only be made if value captured is greater than our ob.WN piece
+                if (m.To == myMove.To)
+                {
+                    if (tempToValue <= Math.Abs(b.pieceIdBoard[myMove.To].PieceValue))
+                    {
+                        skip = true;
+                    }
+                    //   if (pieceArray[myMove.to].getPieceName == "Bp" && myMove.isAttack == false)
+
+
+
+                }
+            }
+
+            return skip;
+        }
+
+        private static void UndoMove(Board b, Move myMove, string tempToName, int tempToValue, string tempFromName, int tempFromValue, long startMask, long endMask)
+        {
+            b.pieceIdBoard[myMove.From].PieceName = tempFromName;
+            b.pieceIdBoard[myMove.From].PieceValue = tempFromValue;
+            b.pieceIdBoard[myMove.To].PieceName = tempToName;
+            b.pieceIdBoard[myMove.To].PieceValue = tempToValue;
+
+            switch (tempFromName)
+            {
+                case "Wp":
+                    b.WP = (b.WP & ~endMask) | startMask;
+                    b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove & ~endMask) | startMask;
+                    break;
+                case "Wn":
+                    b.WN = (b.WN & ~endMask) | startMask;
+                    break;
+                case "Wk":
+                    b.WK = (b.WK & ~endMask) | startMask;
+                    break;
+                case "Wb":
+                    b.WB = (b.WB & ~endMask) | startMask;
+                    break;
+                case "Wr":
+                    b.WR = (b.WR & ~endMask) | startMask;
+                    break;
+                case "Wq":
+                    b.WQ = (b.WQ & ~endMask) | startMask;
+                    break;
+                case "BP":
+                    b.BP = (b.BP & ~endMask) | startMask;
+                    b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove & ~endMask) | startMask;
+                    break;
+                case "BN":
+                    b.BN = (b.BN & ~endMask) | startMask;
+                    break;
+                case "BK":
+                    b.BK = (b.BK & ~endMask) | startMask;
+                    break;
+                case "BB":
+                    b.BB = (b.BB & ~endMask) | startMask;
+                    break;
+                case "BR":
+                    b.BR = (b.BR & ~endMask) | startMask;
+                    break;
+                case "BQ":
+                    b.BQ = (b.BQ & ~endMask) | startMask;
+                    break;
+                default:
+                    break;
+            }
+
+            switch (tempToName)
+            {
+                case "Wp":
+                    b.WP = (b.WP) | endMask;
+                    b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove) | endMask;
+                    break;
+                case "Wn":
+                    b.WN = (b.WN) | endMask;
+                    break;
+                case "Wk":
+                    b.WK = (b.WK) | endMask;
+                    break;
+                case "Wb":
+                    b.WB = (b.WB) | endMask;
+                    break;
+                case "Wr":
+                    b.WR = (b.WR) | endMask;
+                    break;
+                case "Wq":
+                    b.WQ = (b.WQ) | endMask;
+                    break;
+                case "BP":
+                    b.BP = (b.BP) | endMask;
+                    b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove) | endMask;
+                    break;
+                case "BN":
+                    b.BN = (b.BN) | endMask;
+                    break;
+                case "BK":
+                    b.BK = (b.BK) | endMask;
+                    break;
+                case "BB":
+                    b.BB = (b.BB) | endMask;
+                    break;
+                case "BR":
+                    b.BR = (b.BR) | endMask;
+                    break;
+                case "BQ":
+                    b.BQ = (b.BQ) | endMask;
+                    break;
+                default:
+                    break;
+            }
+
+            //  foreach (Piece ip in pieceArray)
+            //{
+            //      Console.Write($"{ip.getPieceName} ");
+            //}
+            // Console.WriteLine();
+
+            // Console.WriteLine();
+            b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
+            b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
+        }
+
+        private static void MakeMove(Board b, Move myMove, long startMask, long endMask)
+        {
+            switch (b.pieceIdBoard[myMove.From].PieceName)
+            {
+                case "Wp":
+                    b.WP = (b.WP ^ startMask) | endMask;
+                    b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove ^ ~startMask) | endMask;
+                    break;
+                case "Wn":
+                    b.WN = (b.WN ^ startMask) | endMask;
+                    break;
+                case "Wk":
+                    b.WK = (b.WK ^ startMask) | endMask;
+                    break;
+                case "Wb":
+                    b.WB = (b.WB ^ startMask) | endMask;
+                    break;
+                case "Wr":
+                    b.WR = (b.WR ^ startMask) | endMask;
+                    break;
+                case "Wq":
+                    b.WQ = (b.WQ ^ startMask) | endMask; ;
+                    break;
+                case "BP":
+                    b.BP = (b.BP ^ startMask) | endMask;
+                    b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove ^ startMask) | endMask;
+                    break;
+                case "BN":
+                    b.BN = (b.BN ^ startMask) | endMask;
+                    break;
+                case "BK":
+                    b.BK = (b.BK & startMask) | endMask;
+                    break;
+                case "BB":
+                    b.BB = (b.BB ^ startMask) | endMask;
+                    break;
+                case "BR":
+                    b.BR = (b.BR ^ startMask) | endMask;
+                    break;
+                case "BQ":
+                    b.BQ = (b.BQ ^ startMask) | endMask;
+                    break;
+                default:
+                    break;
+            }
+
+            switch (b.pieceIdBoard[myMove.To].PieceName)
+            {
+                case "Wp":
+                    b.WP = b.WP & ~endMask;
+                    b.boardUtils.whiteFirstMove = b.boardUtils.whiteFirstMove & ~endMask;
+                    break;
+                case "Wn":
+                    b.WN = b.WN & ~endMask;
+                    break;
+                case "Wk":
+                    b.WK = b.WK & ~endMask;
+                    break;
+                case "Wb":
+                    b.WB = b.WB & ~endMask;
+                    break;
+                case "Wr":
+                    b.WR = b.WR & ~endMask;
+                    break;
+                case "Wq":
+                    b.WQ = b.WQ & ~endMask;
+                    break;
+                case "BP":
+                    b.BP = b.BP & ~endMask;
+                    b.boardUtils.blackFirstMove = b.boardUtils.blackFirstMove & ~endMask;
+                    break;
+                case "BN":
+                    b.BN = b.BN & ~endMask;
+                    break;
+                case "BK":
+                    b.BK = b.BK & ~endMask;
+                    break;
+                case "BB":
+                    b.BB = b.BB & ~endMask;
+                    break;
+                case "BR":
+                    b.BR = b.BR & ~endMask;
+                    break;
+                case "BQ":
+                    b.BQ = b.BQ & ~endMask;
+                    break;
+                default:
+                    break;
+            }
+
+            b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
+            b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
+            b.boardUtils.emptySpaces = ~b.Whitepieces & ~b.Blackpieces;
+            b.pieceIdBoard[myMove.To].PieceName = b.pieceIdBoard[myMove.From].PieceName;
+            b.pieceIdBoard[myMove.To].PieceValue = b.pieceIdBoard[myMove.From].PieceValue;
+            b.pieceIdBoard[myMove.From].PieceName = "-";
+            b.pieceIdBoard[myMove.From].PieceValue = 0;
         }
 
         private void SetPieceIdBoard(Piece[] pieceArray1, Move myMove)
@@ -622,7 +638,7 @@ namespace ChessGame
             }
             if (isMaximiser == true)
             {
-                int bestMove = -9999;
+                int bestMove = Int32.MinValue;
                 for (int i = 0; i < newGameMoves.Count; i++)
                 {
                     Move myMove = newGameMoves[i];
@@ -631,203 +647,15 @@ namespace ChessGame
                     string tempFromName = b.pieceIdBoard[myMove.From].PieceName;
                     int tempFromValue = b.pieceIdBoard[myMove.From].PieceValue;
                     int minValue = b.pieceIdBoard[myMove.To].PieceValue;
-                    //  makemove(myMove, startMask, endMask, WP, WR, WN, WB, WQ, WK,
-                    //                                     BP, BR, BN, BB, BQ, BK,
-                    //                                   whitePieces, blackPieces,b.boardUtils.whiteFirstMove,b.boardUtils.blackFirstMove, pieceArray); 
+
                     Int64 startMask = 1L << b.pieceIdBoard[myMove.From].PiecePosition;
                     Int64 endMask = 1L << b.pieceIdBoard[myMove.To].PiecePosition;
-                    switch (b.pieceIdBoard[myMove.From].PieceName)
-                    {
-                        case "Wp":
-                            b.WP = (b.WP ^ startMask) | endMask;
-                            b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove ^ ~startMask) | endMask;
-                            break;
-                        case "Wn":
-                            b.WN = (b.WN ^ startMask) | endMask;
-                            break;
-                        case "Wk":
-                            b.WK = (b.WK ^ startMask) | endMask;
-                            break;
-                        case "Wb":
-                            b.WB = (b.WB ^ startMask) | endMask;
-                            break;
-                        case "Wr":
-                            b.WR = (b.WR ^ startMask) | endMask;
-                            break;
-                        case "Wq":
-                            b.WQ = (b.WQ ^ startMask) | endMask; ;
-                            break;
-                        case "BP":
-                            b.BP = (b.BP ^ startMask) | endMask;
-                            b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove ^ startMask) | endMask;
-                            break;
-                        case "BN":
-                            b.BN = (b.BN ^ startMask) | endMask;
-                            break;
-                        case "BK":
-                            b.BK = (b.BK & startMask) | endMask;
-                            break;
-                        case "BB":
-                            b.BB = (b.BB ^ startMask) | endMask;
-                            break;
-                        case "BR":
-                            b.BR = (b.BR ^ startMask) | endMask;
-                            break;
-                        case "BQ":
-                            b.BQ = (b.BQ ^ startMask) | endMask;
-                            break;
-                        default:
-                            break;
-                    }
 
-                    switch (b.pieceIdBoard[myMove.To].PieceName)
-                    {
-                        case "Wp":
-                            b.WP = b.WP & ~endMask;
-                            b.boardUtils.whiteFirstMove = b.boardUtils.whiteFirstMove & ~endMask;
-                            break;
-                        case "Wn":
-                            b.WN = b.WN & ~endMask;
-                            break;
-                        case "Wk":
-                            b.WK = b.WK & ~endMask;
-                            break;
-                        case "Wb":
-                            b.WB = b.WB & ~endMask;
-                            break;
-                        case "Wr":
-                            b.WR = b.WR & ~endMask;
-                            break;
-                        case "Wq":
-                            b.WQ = b.WQ & ~endMask;
-                            break;
-                        case "BP":
-                            b.BP = b.BP & ~endMask;
-                            b.boardUtils.blackFirstMove = b.boardUtils.blackFirstMove & ~endMask;
-                            break;
-                        case "BN":
-                            b.BN = b.BN & ~endMask;
-                            break;
-                        case "BK":
-                            b.BK = b.BK & ~endMask;
-                            break;
-                        case "BB":
-                            b.BB = b.BB & ~endMask;
-                            break;
-                        case "BR":
-                            b.BR = b.BR & ~endMask;
-                            break;
-                        case "BQ":
-                            b.BQ = b.BQ & ~endMask;
-                            break;
-                        default:
-                            break;
-                    }
-                    b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
-                    b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
-                    b.boardUtils.emptySpaces = ~b.Whitepieces & ~b.Blackpieces;
-                    b.pieceIdBoard[myMove.To].PieceName = b.pieceIdBoard[myMove.From].PieceName;
-                    b.pieceIdBoard[myMove.To].PieceValue = b.pieceIdBoard[myMove.From].PieceValue;
-                    b.pieceIdBoard[myMove.From].PieceName = "-";
-                    b.pieceIdBoard[myMove.From].PieceValue = 0;
-
+                    MakeMove(b, myMove, startMask, endMask);
 
                     bestMove = Math.Max(bestMove, MinMax(depth - 1, false, alpha, beta, b));
-                    b.pieceIdBoard[myMove.From].PieceName = tempFromName;
-                    b.pieceIdBoard[myMove.From].PieceValue = tempFromValue;
-                    b.pieceIdBoard[myMove.To].PieceName = tempToName;
-                    b.pieceIdBoard[myMove.To].PieceValue = tempToValue;
 
-                    switch (tempFromName)
-                    {
-                        case "Wp":
-                            b.WP = (b.WP & ~endMask) | startMask;
-                            b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove & ~endMask) | startMask;
-                            break;
-                        case "Wn":
-                            b.WN = (b.WN & ~endMask) | startMask;
-                            break;
-                        case "Wk":
-                            b.WK = (b.WK & ~endMask) | startMask;
-                            break;
-                        case "Wb":
-                            b.WB = (b.WB & ~endMask) | startMask;
-                            break;
-                        case "Wr":
-                            b.WR = (b.WR & ~endMask) | startMask;
-                            break;
-                        case "Wq":
-                            b.WQ = (b.WQ & ~endMask) | startMask;
-                            break;
-                        case "BP":
-                            b.BP = (b.BP & ~endMask) | startMask;
-                            b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove & ~endMask) | startMask;
-                            break;
-                        case "BN":
-                            b.BN = (b.BN & ~endMask) | startMask;
-                            break;
-                        case "BK":
-                            b.BK = (b.BK & ~endMask) | startMask;
-                            break;
-                        case "BB":
-                            b.BB = (b.BB & ~endMask) | startMask;
-                            break;
-                        case "BR":
-                            b.BR = (b.BR & ~endMask) | startMask;
-                            break;
-                        case "BQ":
-                            b.BQ = (b.BQ & ~endMask) | startMask;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    switch (tempToName)
-                    {
-                        case "Wp":
-                            b.WP = (b.WP) | endMask;
-                            b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove) | endMask;
-                            break;
-                        case "Wn":
-                            b.WN = (b.WN) | endMask;
-                            break;
-                        case "Wk":
-                            b.WK = (b.WK) | endMask;
-                            break;
-                        case "Wb":
-                            b.WB = (b.WB) | endMask;
-                            break;
-                        case "Wr":
-                            b.WR = (b.WR) | endMask;
-                            break;
-                        case "Wq":
-                            b.WQ = (b.WQ) | endMask;
-                            break;
-                        case "BP":
-                            b.BP = (b.BP) | endMask;
-                            b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove) | endMask;
-                            break;
-                        case "BN":
-                            b.BN = (b.BN) | endMask;
-                            break;
-                        case "BK":
-                            b.BK = (b.BK) | endMask;
-                            break;
-                        case "BB":
-                            b.BB = (b.BB) | endMask;
-                            break;
-                        case "BR":
-                            b.BR = (b.BR) | endMask;
-                            break;
-                        case "BQ":
-                            b.BQ = (b.BQ) | endMask;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
-                    b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
+                    UndoMove(b, myMove, tempToName, tempToValue, tempFromName, tempFromValue, startMask, endMask);
 
                     alpha = Math.Max(alpha, bestMove);
                     if (alpha >= beta)
@@ -839,7 +667,7 @@ namespace ChessGame
             }
             else
             {
-                int bestMove = 9999;
+                int bestMove = Int32.MaxValue;
                 for (int i = 0; i < newGameMoves.Count; i++)
                 {
                     Move myMove = newGameMoves[i];
@@ -856,200 +684,11 @@ namespace ChessGame
                     //                                   whitePieces, blackPieces,b.boardUtils.whiteFirstMove,b.boardUtils.blackFirstMove, pieceArray); 
                     Int64 startMask = 1L << b.pieceIdBoard[myMove.From].PiecePosition;
                     Int64 endMask = 1L << b.pieceIdBoard[myMove.To].PiecePosition;
-                    switch (b.pieceIdBoard[myMove.From].PieceName)
-                    {
-                        case "Wp":
-                            b.WP = (b.WP ^ startMask) | endMask;
-                            b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove ^ ~startMask) | endMask;
-                            break;
-                        case "Wn":
-                            b.WN = (b.WN ^ startMask) | endMask;
-                            break;
-                        case "Wk":
-                            b.WK = (b.WK ^ startMask) | endMask;
-                            break;
-                        case "Wb":
-                            b.WB = (b.WB ^ startMask) | endMask;
-                            break;
-                        case "Wr":
-                            b.WR = (b.WR ^ startMask) | endMask;
-                            break;
-                        case "Wq":
-                            b.WQ = (b.WQ ^ startMask) | endMask; ;
-                            break;
-                        case "BP":
-                            b.BP = (b.BP ^ startMask) | endMask;
-                            b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove ^ startMask) | endMask;
-                            break;
-                        case "BN":
-                            b.BN = (b.BN ^ startMask) | endMask;
-                            break;
-                        case "BK":
-                            b.BK = (b.BK & startMask) | endMask;
-                            break;
-                        case "BB":
-                            b.BB = (b.BB ^ startMask) | endMask;
-                            break;
-                        case "BR":
-                            b.BR = (b.BR ^ startMask) | endMask;
-                            break;
-                        case "BQ":
-                            b.BQ = (b.BQ ^ startMask) | endMask;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    switch (b.pieceIdBoard[myMove.To].PieceName)
-                    {
-                        case "Wp":
-                            b.WP = b.WP & ~endMask;
-                            b.boardUtils.whiteFirstMove = b.boardUtils.whiteFirstMove & ~endMask;
-                            break;
-                        case "Wn":
-                            b.WN = b.WN & ~endMask;
-                            break;
-                        case "Wk":
-                            b.WK = b.WK & ~endMask;
-                            break;
-                        case "Wb":
-                            b.WB = b.WB & ~endMask;
-                            break;
-                        case "Wr":
-                            b.WR = b.WR & ~endMask;
-                            break;
-                        case "Wq":
-                            b.WQ = b.WQ & ~endMask;
-                            break;
-                        case "BP":
-                            b.BP = b.BP & ~endMask;
-                            b.boardUtils.blackFirstMove = b.boardUtils.blackFirstMove & ~endMask;
-                            break;
-                        case "BN":
-                            b.BN = b.BN & ~endMask;
-                            break;
-                        case "BK":
-                            b.BK = b.BK & ~endMask;
-                            break;
-                        case "BB":
-                            b.BB = b.BB & ~endMask;
-                            break;
-                        case "BR":
-                            b.BR = b.BR & ~endMask;
-                            break;
-                        case "BQ":
-                            b.BQ = b.BQ & ~endMask;
-                            break;
-                        default:
-                            break;
-                    }
-                    b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
-                    b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
-                    b.EmptySpaces = ~b.Whitepieces & ~b.Blackpieces;
-                    b.pieceIdBoard[myMove.To].PieceName = b.pieceIdBoard[myMove.From].PieceName;
-                    b.pieceIdBoard[myMove.To].PieceValue = b.pieceIdBoard[myMove.From].PieceValue;
-                    b.pieceIdBoard[myMove.From].PieceName = "-";
-                    b.pieceIdBoard[myMove.From].PieceValue = 0;
+                    MakeMove(b, myMove, startMask, endMask);
 
                     bestMove = Math.Min(bestMove, MinMax(depth - 1, true, alpha, beta, b));
-                    b.pieceIdBoard[myMove.From].PieceName = tempFromName;
-                    b.pieceIdBoard[myMove.From].PieceValue = tempFromValue;
-                    b.pieceIdBoard[myMove.To].PieceName = tempToName;
-                    b.pieceIdBoard[myMove.To].PieceValue = tempToValue;
+                    UndoMove(b, myMove, tempToName, tempToValue, tempFromName, tempFromValue, startMask, endMask);
 
-                    switch (tempFromName)
-                    {
-                        case "Wp":
-                            b.WP = (b.WP & ~endMask) | startMask;
-                            b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove & ~endMask) | startMask;
-                            break;
-                        case "Wn":
-                            b.WN = (b.WN & ~endMask) | startMask;
-                            break;
-                        case "Wk":
-                            b.WK = (b.WK & ~endMask) | startMask;
-                            break;
-                        case "Wb":
-                            b.WB = (b.WB & ~endMask) | startMask;
-                            break;
-                        case "Wr":
-                            b.WR = (b.WR & ~endMask) | startMask;
-                            break;
-                        case "Wq":
-                            b.WQ = (b.WQ & ~endMask) | startMask;
-                            break;
-                        case "BP":
-                            b.BP = (b.BP & ~endMask) | startMask;
-                            b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove & ~endMask) | startMask;
-                            break;
-                        case "BN":
-                            b.BN = (b.BN & ~endMask) | startMask;
-                            break;
-                        case "BK":
-                            b.BK = (b.BK & ~endMask) | startMask;
-                            break;
-                        case "BB":
-                            b.BB = (b.BB & ~endMask) | startMask;
-                            break;
-                        case "BR":
-                            b.BR = (b.BR & ~endMask) | startMask;
-                            break;
-                        case "BQ":
-                            b.BQ = (b.BQ & ~endMask) | startMask;
-                            break;
-                        default:
-                            break;
-                    }
-
-                    switch (tempToName)
-                    {
-                        case "Wp":
-                            b.WP = (b.WP) | endMask;
-                            b.boardUtils.whiteFirstMove = (b.boardUtils.whiteFirstMove) | endMask;
-                            break;
-                        case "Wn":
-                            b.WN = (b.WN) | endMask;
-                            break;
-                        case "Wk":
-                            b.WK = (b.WK) | endMask;
-                            break;
-                        case "Wb":
-                            b.WB = (b.WB) | endMask;
-                            break;
-                        case "Wr":
-                            b.WR = (b.WR) | endMask;
-                            break;
-                        case "Wq":
-                            b.WQ = (b.WQ) | endMask;
-                            break;
-                        case "BP":
-                            b.BP = (b.BP) | endMask;
-                            b.boardUtils.blackFirstMove = (b.boardUtils.blackFirstMove) | endMask;
-                            break;
-                        case "BN":
-                            b.BN = (b.BN) | endMask;
-                            break;
-                        case "BK":
-                            b.BK = (b.BK) | endMask;
-                            break;
-                        case "BB":
-                            b.BB = (b.BB) | endMask;
-                            break;
-                        case "BR":
-                            b.BR = (b.BR) | endMask;
-                            break;
-                        case "BQ":
-                            b.BQ = (b.BQ) | endMask;
-                            break;
-                        default:
-                            break;
-                    }
-
-
-                    b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
-                    b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
-
-                    //     undoPieceIdBoard(pieceArray, myMove, tempToName, tempToValue);
                     beta = Math.Min(beta, bestMove);
 
                     if (alpha >= beta)
@@ -1063,7 +702,6 @@ namespace ChessGame
         }
 
 
-       
         public int EvaluateBoard(Piece[] pieceIdBoard)
         {
             int totalEvaluation = 0;
