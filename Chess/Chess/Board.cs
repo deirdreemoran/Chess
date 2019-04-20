@@ -42,7 +42,7 @@ namespace ChessGame
             boardUtils = new BoardUtilities();
             CheckMate = b.CheckMate;
             FirstMouseClick = b.FirstMouseClick;
-            whiteInCheck =b.whiteInCheck;
+            whiteInCheck = b.whiteInCheck;
             blackInCheck = b.blackInCheck;
             pieceIdBoard = new Piece[64];
             pieceBorder = new PictureBox[64];
@@ -174,7 +174,7 @@ namespace ChessGame
         /******************************************************************
         *    Creates GUI pieces and sets values
         *******************************************************************/
-        internal void CreateInterfaceAndSetPieceValues(Form form)
+        private void CreateInterfaceAndSetPieceValues(Form form)
         {
             form.Size = new Size(690, 715);
             form.BackgroundImage = boardUtils.boardImage;
@@ -332,6 +332,9 @@ namespace ChessGame
             DrawArray(this);
         }
 
+        /******************************************************************
+        *     Sets GUI clicked piece color
+        ******************************************************************/
         private void SetPieceColor(int position, Color myColor)
         {
             pieceIdBoard[position].BackColor = myColor;
@@ -340,6 +343,9 @@ namespace ChessGame
             pieceBorder[position].Refresh();
         }
 
+        /******************************************************************
+       *     Sets piece image, name, position, and value
+       ******************************************************************/
         private void SetPieceIdBoardValues(Image pImage, string pName, int pIndex, int pValue)
         {
             pieceIdBoard[pIndex].Image = pImage;
@@ -348,11 +354,17 @@ namespace ChessGame
             pieceIdBoard[pIndex].PieceValue = pValue;
         }
 
+        /******************************************************************
+       *     Gets position on pieceIdBoard of specified piece
+       ******************************************************************/
         private int GetPosition(Int64 pieceMap)
         {
             return (Convert.ToString(pieceMap, 2).Length) - 1;
         }
 
+        /******************************************************************
+       *     Draws pieceIdBoard to console, used for debugging purposes
+       ******************************************************************/
         public void DrawArray(Board board)
         {
             String[,] consoleBoard = new String[8, 8];
@@ -374,6 +386,11 @@ namespace ChessGame
             }
         }
 
+        /******************************************************************
+       *     Initiates computer's turn, implements MinMax algorithm and
+       *     alpha-beta pruning to find best possible move(s)
+       *     using 64 int bitboards
+       ******************************************************************/
         public bool InitiateComputerMove()
         {
             Move bestMove = new Move();
@@ -445,6 +462,10 @@ namespace ChessGame
             return false;
         }
 
+        /******************************************************************
+       *     Checks for ending game move checkmate in relation to 
+       *     available legal moves
+       ******************************************************************/
         private bool CheckForCheckMate(List<Move> list, string v, Board b)
         {
             if (list.Count == 1)
@@ -454,15 +475,20 @@ namespace ChessGame
                     CheckMate = true;
                     return true;
                 }
-                else if (list.Count == 0)
-                {
-                    CheckMate = true;
-                    return true;
-                }
             }
+            else if (list.Count == 0)
+            {
+                CheckMate = true;
+                return true;
+            }
+            
             return false;
         }
 
+        /******************************************************************
+       *     Sets GUI piece color and makes move slowly so that
+       *     human player can visually see the move being made by computer
+       ******************************************************************/
         private void UpdateBlackPiece(Move newMove)
         {
             lastMove.To = newMove.To;
@@ -478,6 +504,10 @@ namespace ChessGame
             blackInCheck = -1;
         }
 
+        /******************************************************************
+       *     Updates bitboards and pieceIDBoard based on player's move,
+       *     checks for check
+       ******************************************************************/
         internal void UpdateBoard(int piecePosition)
         {
             Int64 startMask = 0L;
@@ -576,6 +606,9 @@ namespace ChessGame
             ResultsInCheck();
         }
 
+        /******************************************************************
+        *     Updates pieceIdBoard and GUI
+        ******************************************************************/
         private void UpdatePiece(int piecePosition)
         {
             FirstMouseClick = false;
@@ -591,6 +624,9 @@ namespace ChessGame
             }
         }
 
+        /******************************************************************
+      *     Checks if either player is in check
+      ******************************************************************/
         private bool ResultsInCheck()
         {
             // Location of white king
@@ -638,7 +674,9 @@ namespace ChessGame
             return false;
         }
 
-
+        /******************************************************************
+        *     Gets all legal moves for human player
+        ******************************************************************/
         public List<Move> GetAllLegalMoves()
         {
             //UpdateBitboards();
