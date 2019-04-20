@@ -285,7 +285,7 @@ namespace ChessGame
             if (player == "W")
             {
 
-                list2 = newRules2.GetRules( b);
+                list2 = newRules2.GetRules(b);
                 foreach (Move move2 in list2)
                 {
                     if (((Convert.ToString(b.BK, 2).Length) - 1) == move2.To)
@@ -371,28 +371,28 @@ namespace ChessGame
             return ret;
         }
 
+        /****************************************************************************
+        *     Checks if move made will result in immediate attack
+        ****************************************************************************/
         private static bool CheckForImmediateAttack(Board b, Rules rules3, bool skip, Move myMove, int tempToValue)
         {
             List<Move> pnewGameMoves = rules3.GetRules(b);
             foreach (Move m in pnewGameMoves)
             {
-                //if immediate attack after move, our move should only be made if value captured is greater than our ob.WN piece
                 if (m.To == myMove.To)
                 {
                     if (tempToValue <= Math.Abs(b.pieceIdBoard[myMove.To].PieceValue))
                     {
                         skip = true;
                     }
-                    //   if (pieceArray[myMove.to].getPieceName == "Bp" && myMove.isAttack == false)
-
-
-
                 }
             }
-
             return skip;
         }
 
+        /****************************************************************************
+       *    Undoes move made to restore original board
+       ****************************************************************************/
         private static void UndoMove(Board b, Move myMove, string tempToName, int tempToValue, string tempFromName, int tempFromValue, long startMask, long endMask)
         {
             b.pieceIdBoard[myMove.From].PieceName = tempFromName;
@@ -487,18 +487,13 @@ namespace ChessGame
                 default:
                     break;
             }
-
-            //  foreach (Piece ip in pieceArray)
-            //{
-            //      Console.Write($"{ip.getPieceName} ");
-            //}
-            // Console.WriteLine();
-
-            // Console.WriteLine();
             b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
             b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
         }
 
+        /****************************************************************************
+       *     Makes move to create new game state
+       ****************************************************************************/
         private static void MakeMove(Board b, Move myMove, long startMask, long endMask)
         {
             switch (b.pieceIdBoard[myMove.From].PieceName)
@@ -598,46 +593,26 @@ namespace ChessGame
             b.pieceIdBoard[myMove.From].PieceValue = 0;
         }
 
-        private void SetPieceIdBoard(Piece[] pieceArray1, Move myMove)
-        {
-            pieceArray1[myMove.To].PieceName = pieceArray1[myMove.From].PieceName;
-            pieceArray1[myMove.To].PieceValue = pieceArray1[myMove.From].PieceValue;
-            pieceArray1[myMove.From].PieceName = "-";
-            pieceArray1[myMove.From].PieceValue = 0;
-        }
-
-        private void UndoPieceIdBoard(Piece[] pieceArray1, Move myMove, string tempToName, int tempToValue)
-        {
-            pieceArray1[myMove.From].PieceName = pieceArray1[myMove.To].PieceName;
-            pieceArray1[myMove.From].PieceValue = pieceArray1[myMove.To].PieceValue;
-            pieceArray1[myMove.To].PieceName = tempToName;
-            pieceArray1[myMove.To].PieceValue = tempToValue;
-        }
-
+        /****************************************************************************
+       *     Creates test game state by making sequential moves up to a specified 
+       *     depth and returns the total value of the game state
+       ****************************************************************************/
         public int MinMax(int depth, bool isMaximiser, int alpha, int beta, Board b)
-
         {
+            //end of specified traversal length, evaluate board
             if (depth == 0)
             {
                 int k = -EvaluateBoard(b.pieceIdBoard);
                 return k;
             }
+
             List<Move> newGameMoves = new List<Move>();
             List<Move> pnewGameMoves = new List<Move>();
             Rules rules3 = new Rules();
-            if (isMaximiser == true)
+            if (isMaximiser)
             {
-                pnewGameMoves = rules3.GetComputerRules( b);
+                pnewGameMoves = rules3.GetComputerRules(b);
                 newGameMoves = pnewGameMoves.OrderByDescending(o => o.Value).ToList();
-            }
-            if (isMaximiser == false)
-            {
-                pnewGameMoves = rules3.GetRules( b);
-
-                newGameMoves = pnewGameMoves.OrderByDescending(o => o.Value).ToList();
-            }
-            if (isMaximiser == true)
-            {
                 int bestMove = Int32.MinValue;
                 for (int i = 0; i < newGameMoves.Count; i++)
                 {
@@ -665,27 +640,27 @@ namespace ChessGame
                 }
                 return bestMove;
             }
+           
             else
             {
+                pnewGameMoves = rules3.GetRules(b);
+                newGameMoves = pnewGameMoves.OrderByDescending(o => o.Value).ToList();
                 int bestMove = Int32.MaxValue;
+
                 for (int i = 0; i < newGameMoves.Count; i++)
                 {
                     Move myMove = newGameMoves[i];
-
-
                     int maxValue = b.pieceIdBoard[myMove.To].PieceValue;
                     string tempToName = b.pieceIdBoard[myMove.To].PieceName;
                     int tempToValue = b.pieceIdBoard[myMove.To].PieceValue;
                     string tempFromName = b.pieceIdBoard[myMove.From].PieceName;
                     int tempFromValue = b.pieceIdBoard[myMove.From].PieceValue;
                     int minValue = b.pieceIdBoard[myMove.To].PieceValue;
-                    //  makemove(myMove, startMask, endMask, WP, WR, WN, WB, WQ, WK,
-                    //                                     BP, BR, BN, BB, BQ, BK,
-                    //                                   whitePieces, blackPieces,b.boardUtils.whiteFirstMove,b.boardUtils.blackFirstMove, pieceArray); 
+
                     Int64 startMask = 1L << b.pieceIdBoard[myMove.From].PiecePosition;
                     Int64 endMask = 1L << b.pieceIdBoard[myMove.To].PiecePosition;
-                    MakeMove(b, myMove, startMask, endMask);
 
+                    MakeMove(b, myMove, startMask, endMask);
                     bestMove = Math.Min(bestMove, MinMax(depth - 1, true, alpha, beta, b));
                     UndoMove(b, myMove, tempToName, tempToValue, tempFromName, tempFromValue, startMask, endMask);
 
@@ -698,14 +673,16 @@ namespace ChessGame
                 }
                 return bestMove;
             }
-
         }
 
-
+        /****************************************************************************
+        *     Adds values of pieceIdBoard after test moves are made, determines best
+        *     move in EvaluateMove
+        ****************************************************************************/
         public int EvaluateBoard(Piece[] pieceIdBoard)
         {
             int totalEvaluation = 0;
-            for (int i = 0; i < 64; i++)
+            for (int i = 0; i < Board.BoardSize; i++)
             {
                 totalEvaluation += pieceIdBoard[i].PieceValue;
             }
@@ -714,63 +691,8 @@ namespace ChessGame
             return totalEvaluation;
         }
 
-        public bool CheckForAttack(Queue<Move> qMoves, List<Move> tList)
-        {
-            foreach (Move move in tList)
-            {
-                // Move m = qMoves.Peek();
-                if (qMoves.Peek().To == move.To)
-                {
-                    qMoves.Dequeue();
-                    return false;
-                }
-            }
-            return true;
-        }
+       
 
-
-        public void DrawArray(Int64 WP, Int64 WR, Int64 WN, Int64 WB, Int64 WQ, Int64 WK, Int64 BP, Int64 BR, Int64 BN, Int64 BB, Int64 BQ, Int64 BK)
-        {
-            String[,] consoleBoard = new String[8, 8];
-            for (int i = 0; i < 64; i++)
-            {
-                if (((WP >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "p"; }
-                if (((WN >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "n"; }
-                if (((WB >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "b"; }
-                if (((WR >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "r"; }
-                if (((WQ >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "q"; }
-                if (((WK >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "k"; }
-                if (((BP >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "P"; }
-                if (((BN >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "N"; }
-                if (((BB >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "B"; }
-                if (((BR >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "R"; }
-                if (((BQ >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "Q"; }
-                if (((BK >> i) & 1) == 1) { consoleBoard[i / 8, i % 8] = "K"; }
-            }
-        }
-
-        public Piece[] UpdateTestPiece(int pieceFrom, int pieceTo, Piece[] pieceArray)
-        {
-            pieceArray[pieceTo].PieceName = pieceArray[pieceFrom].PieceName;
-            pieceArray[pieceTo].PieceValue = pieceArray[pieceFrom].PieceValue;
-            pieceArray[pieceFrom].PieceName = "-";
-            pieceArray[pieceFrom].PieceValue = 0;
-
-            if (pieceArray[pieceFrom].IsFirstMove == true)
-            {
-                pieceArray[pieceFrom].IsFirstMove = false;
-            }
-            return pieceArray;
-        }
-
-        public void CalculateAttack()
-        {
-            //calculate attack by getting all white moves resulting attacks
-            //go through attack moves and calculate proximity to king and value
-            //for now, if there is an attack, choose the move to counteract attack
-        }
-
-        
 
     }
 
