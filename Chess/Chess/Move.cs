@@ -39,10 +39,8 @@ namespace ChessGame
         ******************************************************************/
         public bool IsValidMove(List<Move> validMoves)
         {
-            foreach (Move m in validMoves)
-            {
-                if (m.To == this.To && m.From == this.From)
-                {
+            foreach (Move m in validMoves) { 
+                if (m.To == this.To && m.From == this.From) { 
                     return true;
                 }
             }
@@ -54,110 +52,20 @@ namespace ChessGame
         ******************************************************************/
         public bool IsCheckMove(List<Move> validMoves, int pos, int dest, Board b, string player)
         {
-            List<Move> valids = new List<Move>();
-            List<Move> aValid = new List<Move>();
-
             //check if the valid move results in check from opponent
-            Int64 startMask = 1L << b.pieceIdBoard[dest].PiecePosition;
-            Int64 endMask = 1L << b.pieceIdBoard[pos].PiecePosition;
+            long startMask = 1L << b.pieceIdBoard[dest].PiecePosition;
+            long endMask = 1L << b.pieceIdBoard[pos].PiecePosition;
             //make move
-            switch (b.pieceIdBoard[pos].PieceName)
-            {
-                case "Wp":
-                    b.WP = (b.WP & ~endMask) | startMask;
-                    break;
-                case "Wn":
-                    b.WN = (b.WN & ~endMask) | startMask;
-                    break;
-                case "Wk":
-                    b.WK = (b.WK & ~endMask) | startMask;
-                    break;
-                case "Wb":
-                    b.WB = (b.WB & ~endMask) | startMask;
-                    break;
-                case "Wr":
-                    b.WR = (b.WR & ~endMask) | startMask;
-                    break;
-                case "Wq":
-                    b.WQ = (b.WQ & ~endMask) | startMask;
-                    break;
-                case "BP":
-                    b.BP = (b.BP & ~endMask) | startMask;
-                    break;
-                case "BN":
-                    b.BN = (b.BN & ~endMask) | startMask;
-                    break;
-                case "BK":
-                    b.BK = (b.BK & ~endMask) | startMask;
-                    break;
-                case "BB":
-                    b.BB = (b.BB & ~endMask) | startMask;
-                    break;
-                case "BR":
-                    b.BR = (b.BR & ~endMask) | startMask;
-                    break;
-                case "BQ":
-                    b.BQ = (b.BQ & ~endMask) | startMask;
-                    break;
-                default:
-                    break;
-            }
-            switch (b.pieceIdBoard[dest].PieceName)
-            {
-                case "Wp":
-                    b.WP = (b.WP) ^ (startMask);
-                    break;
-                case "Wn":
-                    b.WN = (b.WN) ^ (startMask);
-                    break;
-                case "Wk":
-                    b.WK = (b.WK) ^ (startMask);
-                    break;
-                case "Wb":
-                    b.WB = (b.WB) ^ (startMask);
-                    break;
-                case "Wr":
-                    b.WR = (b.WR) ^ (startMask);
-                    break;
-                case "Wq":
-                    b.WQ = (b.WQ) ^ (startMask);
-                    break;
-                case "BP":
-                    b.BP = (b.BP) ^ (startMask);
-                    break;
-                case "BN":
-                    b.BN = (b.BN) ^ (startMask);
-                    break;
-                case "BK":
-                    b.BK = (b.BK) ^ (startMask);
-                    break;
-                case "BB":
-                    b.BB = (b.BB) ^ (startMask);
-                    break;
-                case "BR":
-                    b.BR = (b.BR) ^ (startMask);
-                    break;
-                case "BQ":
-                    b.BQ = (b.BQ) ^ (startMask);
-                    break;
-                default:
-                    break;
-            }
-
-            b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
-            b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
-            b.EmptySpaces = ~(b.Whitepieces | b.Blackpieces);
+            MakeMoveLight(pos, dest, b, startMask, endMask);
 
             List<Move> list2 = new List<Move>();
             Rules newRules2 = new Rules();
 
             if (player == "W")
             {
-                // get opponent's moves
-                list2 = newRules2.GetComputerRules(b);
-
-                // if white king position is same as opponent's to position, 
-                // this would result in check
+                list2 = newRules2.GetBlackRules(b);
+                // if white king position is same as black's destination position, 
+                // this would result in check, return true
                 foreach (Move move2 in list2)
                 {
                     if (((Convert.ToString(b.WK, 2).Length) - 1) == move2.To)
@@ -167,125 +75,41 @@ namespace ChessGame
                 }
                 return false;
             }
-            list2 = newRules2.GetRules(b);
-            // if my white king position is equal to a valid black moves destination position, then this results in check, so do not include in 
-            //possible valid moves
-            foreach (Move move2 in list2)
+            else
             {
-                if (((Convert.ToString(b.BK, 2).Length) - 1) == move2.To)
+                list2 = newRules2.GetWhiteRules(b);
+                // if black king position is same as white's destination position, 
+                // this would result in check, return true
+                foreach (Move move2 in list2)
                 {
-                    return true;
+                    if (((Convert.ToString(b.BK, 2).Length) - 1) == move2.To)
+                    {
+                        return true;
+                    }
                 }
+                return false;
             }
-            return false;
-
         }
 
         /******************************************************************
         *     Checks if selected move results in opponent check
         ******************************************************************/
-        public bool OpponentInCheck(List<Move> allLegalMoves, int pos, int dest, ref Board b, string player)
+        public bool OpponentInCheck(List<Move> allLegalMoves, int pos, int dest, Board b, string player)
         {
             List<Move> valids = new List<Move>();
             List<Move> aValid = new List<Move>();
 
             //check if the valid move results in check from opponent
-            Int64 startMask = 1L << b.pieceIdBoard[dest].PiecePosition;
-            Int64 endMask = 1L << b.pieceIdBoard[pos].PiecePosition;
+            long startMask = 1L << b.pieceIdBoard[dest].PiecePosition;
+            long endMask = 1L << b.pieceIdBoard[pos].PiecePosition;
             //make move
-            switch (b.pieceIdBoard[pos].PieceName)
-            {
-                case "Wp":
-                    b.WP = (b.WP & ~endMask) | startMask;
-                    break;
-                case "Wn":
-                    b.WN = (b.WN & ~endMask) | startMask;
-                    break;
-                case "Wk":
-                    b.WK = (b.WK & ~endMask) | startMask;
-                    break;
-                case "Wb":
-                    b.WB = (b.WB & ~endMask) | startMask;
-                    break;
-                case "Wr":
-                    b.WR = (b.WR & ~endMask) | startMask;
-                    break;
-                case "Wq":
-                    b.WQ = (b.WQ & ~endMask) | startMask;
-                    break;
-                case "BP":
-                    b.BP = (b.BP & ~endMask) | startMask;
-                    break;
-                case "BN":
-                    b.BN = (b.BN & ~endMask) | startMask;
-                    break;
-                case "BK":
-                    b.BK = (b.BK & ~endMask) | startMask;
-                    break;
-                case "BB":
-                    b.BB = (b.BB & ~endMask) | startMask;
-                    break;
-                case "BR":
-                    b.BR = (b.BR & ~endMask) | startMask;
-                    break;
-                case "BQ":
-                    b.BQ = (b.BQ & ~endMask) | startMask;
-                    break;
-                default:
-                    break;
-            }
-            switch (b.pieceIdBoard[dest].PieceName)
-            {
-                case "Wp":
-                    b.WP = (b.WP) ^ (startMask);
-                    break;
-                case "Wn":
-                    b.WN = (b.WN) ^ (startMask);
-                    break;
-                case "Wk":
-                    b.WK = (b.WK) ^ (startMask);
-                    break;
-                case "Wb":
-                    b.WB = (b.WB) ^ (startMask);
-                    break;
-                case "Wr":
-                    b.WR = (b.WR) ^ (startMask);
-                    break;
-                case "Wq":
-                    b.WQ = (b.WQ) ^ (startMask);
-                    break;
-                case "BP":
-                    b.BP = (b.BP) ^ (startMask);
-                    break;
-                case "BN":
-                    b.BN = (b.BN) ^ (startMask);
-                    break;
-                case "BK":
-                    b.BK = (b.BK) ^ (startMask);
-                    break;
-                case "BB":
-                    b.BB = (b.BB) ^ (startMask);
-                    break;
-                case "BR":
-                    b.BR = (b.BR) ^ (startMask);
-                    break;
-                case "BQ":
-                    b.BQ = (b.BQ) ^ (startMask);
-                    break;
-                default:
-                    break;
-            }
-
-            b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
-            b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
-            b.EmptySpaces = ~(b.Whitepieces | b.Blackpieces);
+            MakeMoveLight(pos, dest, b, startMask, endMask);
 
             List<Move> list2 = new List<Move>();
             Rules newRules2 = new Rules();
             if (player == "W")
             {
-
-                list2 = newRules2.GetRules(b);
+                list2 = newRules2.GetWhiteRules(b);
                 foreach (Move move2 in list2)
                 {
                     if (((Convert.ToString(b.BK, 2).Length) - 1) == move2.To)
@@ -297,17 +121,16 @@ namespace ChessGame
             }
             else
             {
-                list2 = newRules2.GetComputerRules(b);
-                foreach (Move move2 in list2)
-                {
-                    if (((Convert.ToString(b.WK, 2).Length) - 1) == move2.To)
-                    {
+                list2 = newRules2.GetBlackRules(b);
+                foreach (Move move2 in list2) { 
+                    if (((Convert.ToString(b.WK, 2).Length) - 1) == move2.To) { 
                         return true;
                     }
                 }
                 return false;
             }
         }
+
 
         /******************************************************************
         *     Evaluates best computer move using MinMax algorithm with 
@@ -318,7 +141,7 @@ namespace ChessGame
             KingPosition = b.GetPosition(b.WK);
             List<Move> tnewGameMoves = new List<Move>();
             Rules rules3 = new Rules();
-            tnewGameMoves = rules3.GetComputerRules(b);
+            tnewGameMoves = rules3.GetBlackRules(b);
 
             List<Move> newGameMoves = tnewGameMoves.OrderByDescending(o => o.Value).ToList();
             int alpha = Int32.MinValue;
@@ -337,8 +160,8 @@ namespace ChessGame
                 int tempFromValue = b.pieceIdBoard[myMove.From].PieceValue;
                 AttackValue = 0;
 
-                Int64 startMask = 1L << b.pieceIdBoard[myMove.From].PiecePosition;
-                Int64 endMask = 1L << b.pieceIdBoard[myMove.To].PiecePosition;
+                long startMask = 1L << b.pieceIdBoard[myMove.From].PiecePosition;
+                long endMask = 1L << b.pieceIdBoard[myMove.To].PiecePosition;
 
                 //Make the move
                 MakeMove(b, myMove, startMask, endMask);
@@ -376,7 +199,7 @@ namespace ChessGame
         ****************************************************************************/
         private static bool CheckForImmediateAttack(Board b, Rules rules3, bool skip, Move myMove, int tempToValue)
         {
-            List<Move> pnewGameMoves = rules3.GetRules(b);
+            List<Move> pnewGameMoves = rules3.GetWhiteRules(b);
             foreach (Move m in pnewGameMoves)
             {
                 if (m.To == myMove.To)
@@ -391,7 +214,7 @@ namespace ChessGame
         }
 
         /****************************************************************************
-       *    Undoes move made to restore original board
+       *    Undo move made to restore original board
        ****************************************************************************/
         private static void UndoMove(Board b, Move myMove, string tempToName, int tempToValue, string tempFromName, int tempFromValue, long startMask, long endMask)
         {
@@ -487,12 +310,12 @@ namespace ChessGame
                 default:
                     break;
             }
-            b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
-            b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
+            b.WhitePieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
+            b.BlackPieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
         }
 
         /****************************************************************************
-       *     Makes move to create new game state
+       *     Makes move to create new game state (based on move)
        ****************************************************************************/
         private static void MakeMove(Board b, Move myMove, long startMask, long endMask)
         {
@@ -584,13 +407,106 @@ namespace ChessGame
                     break;
             }
 
-            b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
-            b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
-            b.boardUtils.emptySpaces = ~b.Whitepieces & ~b.Blackpieces;
+            b.WhitePieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
+            b.BlackPieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
+            b.boardUtils.emptySpaces = ~b.WhitePieces & ~b.BlackPieces;
             b.pieceIdBoard[myMove.To].PieceName = b.pieceIdBoard[myMove.From].PieceName;
             b.pieceIdBoard[myMove.To].PieceValue = b.pieceIdBoard[myMove.From].PieceValue;
             b.pieceIdBoard[myMove.From].PieceName = "-";
             b.pieceIdBoard[myMove.From].PieceValue = 0;
+        }
+
+        /****************************************************************************
+        *     Makes move to create new game state ('Light' b/c based on position and destination)
+        ****************************************************************************/
+        private static void MakeMoveLight(int pos, int dest, Board b, long startMask, long endMask)
+        {
+            switch (b.pieceIdBoard[pos].PieceName)
+            {
+                case "Wp":
+                    b.WP = (b.WP & ~endMask) | startMask;
+                    break;
+                case "Wn":
+                    b.WN = (b.WN & ~endMask) | startMask;
+                    break;
+                case "Wk":
+                    b.WK = (b.WK & ~endMask) | startMask;
+                    break;
+                case "Wb":
+                    b.WB = (b.WB & ~endMask) | startMask;
+                    break;
+                case "Wr":
+                    b.WR = (b.WR & ~endMask) | startMask;
+                    break;
+                case "Wq":
+                    b.WQ = (b.WQ & ~endMask) | startMask;
+                    break;
+                case "BP":
+                    b.BP = (b.BP & ~endMask) | startMask;
+                    break;
+                case "BN":
+                    b.BN = (b.BN & ~endMask) | startMask;
+                    break;
+                case "BK":
+                    b.BK = (b.BK & ~endMask) | startMask;
+                    break;
+                case "BB":
+                    b.BB = (b.BB & ~endMask) | startMask;
+                    break;
+                case "BR":
+                    b.BR = (b.BR & ~endMask) | startMask;
+                    break;
+                case "BQ":
+                    b.BQ = (b.BQ & ~endMask) | startMask;
+                    break;
+                default:
+                    break;
+            }
+            switch (b.pieceIdBoard[dest].PieceName)
+            {
+                case "Wp":
+                    b.WP = (b.WP) ^ (startMask);
+                    break;
+                case "Wn":
+                    b.WN = (b.WN) ^ (startMask);
+                    break;
+                case "Wk":
+                    b.WK = (b.WK) ^ (startMask);
+                    break;
+                case "Wb":
+                    b.WB = (b.WB) ^ (startMask);
+                    break;
+                case "Wr":
+                    b.WR = (b.WR) ^ (startMask);
+                    break;
+                case "Wq":
+                    b.WQ = (b.WQ) ^ (startMask);
+                    break;
+                case "BP":
+                    b.BP = (b.BP) ^ (startMask);
+                    break;
+                case "BN":
+                    b.BN = (b.BN) ^ (startMask);
+                    break;
+                case "BK":
+                    b.BK = (b.BK) ^ (startMask);
+                    break;
+                case "BB":
+                    b.BB = (b.BB) ^ (startMask);
+                    break;
+                case "BR":
+                    b.BR = (b.BR) ^ (startMask);
+                    break;
+                case "BQ":
+                    b.BQ = (b.BQ) ^ (startMask);
+                    break;
+                default:
+                    break;
+            }
+
+            b.WhitePieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
+            b.BlackPieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
+            b.EmptySpaces = ~(b.WhitePieces | b.BlackPieces);
         }
 
         /****************************************************************************
@@ -611,7 +527,7 @@ namespace ChessGame
             Rules rules3 = new Rules();
             if (isMaximiser)
             {
-                pnewGameMoves = rules3.GetComputerRules(b);
+                pnewGameMoves = rules3.GetBlackRules(b);
                 newGameMoves = pnewGameMoves.OrderByDescending(o => o.Value).ToList();
                 int bestMove = Int32.MinValue;
                 for (int i = 0; i < newGameMoves.Count; i++)
@@ -623,8 +539,8 @@ namespace ChessGame
                     int tempFromValue = b.pieceIdBoard[myMove.From].PieceValue;
                     int minValue = b.pieceIdBoard[myMove.To].PieceValue;
 
-                    Int64 startMask = 1L << b.pieceIdBoard[myMove.From].PiecePosition;
-                    Int64 endMask = 1L << b.pieceIdBoard[myMove.To].PiecePosition;
+                    long startMask = 1L << b.pieceIdBoard[myMove.From].PiecePosition;
+                    long endMask = 1L << b.pieceIdBoard[myMove.To].PiecePosition;
 
                     MakeMove(b, myMove, startMask, endMask);
 
@@ -643,7 +559,7 @@ namespace ChessGame
            
             else
             {
-                pnewGameMoves = rules3.GetRules(b);
+                pnewGameMoves = rules3.GetWhiteRules(b);
                 newGameMoves = pnewGameMoves.OrderByDescending(o => o.Value).ToList();
                 int bestMove = Int32.MaxValue;
 
@@ -657,8 +573,8 @@ namespace ChessGame
                     int tempFromValue = b.pieceIdBoard[myMove.From].PieceValue;
                     int minValue = b.pieceIdBoard[myMove.To].PieceValue;
 
-                    Int64 startMask = 1L << b.pieceIdBoard[myMove.From].PiecePosition;
-                    Int64 endMask = 1L << b.pieceIdBoard[myMove.To].PiecePosition;
+                    long startMask = 1L << b.pieceIdBoard[myMove.From].PiecePosition;
+                    long endMask = 1L << b.pieceIdBoard[myMove.To].PiecePosition;
 
                     MakeMove(b, myMove, startMask, endMask);
                     bestMove = Math.Min(bestMove, MinMax(depth - 1, true, alpha, beta, b));

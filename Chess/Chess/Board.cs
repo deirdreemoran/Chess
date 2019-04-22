@@ -11,54 +11,61 @@ namespace ChessGame
 {
     public class Board
     {
-        public long Whitepieces { get; set; }
-        public long Blackpieces { get; set; }
+        public const int BoardSize = 64;
+        public long WhitePieces { get; set; }
+        public long BlackPieces { get; set; }
         public long EmptySpaces { get; set; }
-        public long WP, WB, WN, WR, WQ, WK, BP, BB, BN, BR, BQ, BK;
+        public int WhiteInCheck { get; set; }
+        public int BlackInCheck { get; set; }
+        public int StartPiecePosition { get; set; }
+        public bool CheckMate { get; set; }
+        public bool FirstMouseClick { get; set; }
+        public long WP { get; set; }
+        public long WB { get; set; }
+        public long WN { get; set; }
+        public long WR { get; set; }
+        public long WQ { get; set; }
+        public long WK { get; set; }
+        public long BP { get; set; }
+        public long BB { get; set; }
+        public long BN { get; set; }
+        public long BR { get; set; }
+        public long BQ { get; set; }
+        public long BK { get; set; }
+        public string[] chessBoard;
         public BoardUtilities boardUtils;
         public Piece[] pieceIdBoard;
         public PictureBox[] pieceBorder;
-        public bool CheckMate { get; set; }     
-        public bool FirstMouseClick { get; set; }
-        public string[] chessBoard;
-        public int whiteInCheck, blackInCheck, startPiecePosition;
-        public Move lastMove;
-        public const int BoardSize = 64;
+        public Move LastMove { get; set; }
 
         public Board()
         {
-            boardUtils = new BoardUtilities();
+            WhiteInCheck = -1;
+            BlackInCheck = -1;
             CheckMate = false;
             FirstMouseClick = false;
-            whiteInCheck = -1;
-            blackInCheck = -1;
-            pieceIdBoard = new Piece[64];
-            pieceBorder = new PictureBox[64];
-            lastMove = new Move();
+            boardUtils = new BoardUtilities();
+            pieceIdBoard = new Piece[BoardSize];
+            pieceBorder = new PictureBox[BoardSize];
+            LastMove = new Move();
         }
 
+        /******************************************************************
+       *    Copy Constructor for deep copy of board
+       *******************************************************************/
         public Board(Board b)
         {
-            boardUtils = new BoardUtilities();
             CheckMate = b.CheckMate;
             FirstMouseClick = b.FirstMouseClick;
-            whiteInCheck = b.whiteInCheck;
-            blackInCheck = b.blackInCheck;
-            pieceIdBoard = new Piece[64];
-            pieceBorder = new PictureBox[64];
-            lastMove = new Move();
-            Whitepieces = b.Whitepieces;
-            Blackpieces = b.Blackpieces;
+            WhiteInCheck = b.WhiteInCheck;
+            BlackInCheck = b.BlackInCheck;
+            WhitePieces = b.WhitePieces;
+            BlackPieces = b.BlackPieces;
             EmptySpaces = b.EmptySpaces;
-
-            for(int i = 0; i < BoardSize; i++) {
-                pieceIdBoard[i] = new Piece();
-                pieceIdBoard[i].PieceName = b.pieceIdBoard[i].PieceName;
-                pieceIdBoard[i].PiecePosition = b.pieceIdBoard[i].PiecePosition;
-                pieceIdBoard[i].IsFirstMove = b.pieceIdBoard[i].IsFirstMove;
-                pieceIdBoard[i].PieceValue = b.pieceIdBoard[i].PieceValue;
-            }
-
+            boardUtils = new BoardUtilities();
+            pieceIdBoard = new Piece[BoardSize];
+            pieceBorder = new PictureBox[BoardSize];
+            LastMove = new Move();
             WP = b.WP;
             WN = b.WN;
             WB = b.WB;
@@ -71,6 +78,17 @@ namespace ChessGame
             BK = b.BK;
             BQ = b.BQ;
             BR = b.BR;
+
+            for (int i = 0; i < BoardSize; i++) {
+                pieceIdBoard[i] = new Piece
+                {
+                    PieceName = b.pieceIdBoard[i].PieceName,
+                    PiecePosition = b.pieceIdBoard[i].PiecePosition,
+                    IsFirstMove = b.pieceIdBoard[i].IsFirstMove,
+                    PieceValue = b.pieceIdBoard[i].PieceValue
+                };
+            }
+
         }
 
         /******************************************************************
@@ -94,7 +112,7 @@ namespace ChessGame
         }
 
         /******************************************************************
-        *   Set individual Int64 bitboards to represent pieces
+        *   Set individual long bitboards to represent pieces
         *******************************************************************/
         private void ConvertArrayToBitboard()
         {
@@ -146,17 +164,15 @@ namespace ChessGame
         }
 
         /******************************************************************
-         *    Converts binary string to Int64
+         *    Converts binary string to long
         *******************************************************************/
-        public static Int64 ConvertStringToBitboard(String Binary)
+        public static long ConvertStringToBitboard(String Binary)
         {
             // If this is a positive number
-            if (Binary.ElementAt(0) == '0')
-            {
+            if (Binary.ElementAt(0) == '0'){
                 return Convert.ToInt64(Binary, 2);
             }
-            else
-            {
+            else {
                 return Convert.ToInt64("1" + Binary.Substring(2), 2) * 2;
             }
         }
@@ -166,9 +182,9 @@ namespace ChessGame
         *******************************************************************/
         private void UpdateBitboards()
         {
-            Whitepieces = WP | WB | WK | WN | WQ | WR;
-            Blackpieces = BP | BB | BK | BN | BQ | BR;
-            EmptySpaces = ~(Whitepieces | Blackpieces);
+            WhitePieces = WP | WB | WK | WN | WQ | WR;
+            BlackPieces = BP | BB | BK | BN | BQ | BR;
+            EmptySpaces = ~(WhitePieces | BlackPieces);
         }
 
         /******************************************************************
@@ -263,7 +279,6 @@ namespace ChessGame
         *******************************************************************/
         private void PieceClicked(object sender, EventArgs e)
         {           
-
             Piece piece = sender as Piece;
 
             //if this is initial piece to move from, highlight piece
@@ -272,40 +287,38 @@ namespace ChessGame
                 pieceBorder[piece.PiecePosition].BackColor = Color.Chocolate;
                 pieceIdBoard[piece.PiecePosition].BackColor = Color.Chocolate;
                 FirstMouseClick = true;
-                startPiecePosition = piece.PiecePosition;
+                StartPiecePosition = piece.PiecePosition;
             }
-            //else this is piece to move to, 
+            //else this is second mouse click, destination is specified
             else
             {
                 List<Move> allLegalMoves = GetAllLegalMoves();
-                Int64 pieceMask = 1L << piece.PiecePosition;
-                Move newMove = new Move(startPiecePosition, piece.PiecePosition);
+                long pieceMask = 1L << piece.PiecePosition;
+                Move newMove = new Move(StartPiecePosition, piece.PiecePosition);
                 // If invalid move, reset piece color 
                 if (!newMove.IsValidMove(allLegalMoves))
                 {
-                    SetPieceColor(startPiecePosition, Color.Transparent);
+                    SetPieceColor(StartPiecePosition, Color.Transparent);
                 }
                 // Else move is valid
                 else
                 {
                     Board b = new Board(this);
                     //If this would result in current player's own check, invalid move
-                    if (newMove.IsCheckMove(allLegalMoves, startPiecePosition, piece.PiecePosition, b, "W"))
+                    if (newMove.IsCheckMove(allLegalMoves, StartPiecePosition, piece.PiecePosition, b, "W"))
                     {
-                        SetPieceColor(startPiecePosition, Color.Transparent);
+                        SetPieceColor(StartPiecePosition, Color.Transparent);
                     }
-
                     //else make the move
                     else
                     {
                         UpdateBoard(newMove.To);
                         Board b2 = new Board(this);
-                        Int64 fm = boardUtils.whiteFirstMove;
                         int whiteKingPosition = GetPosition(WK);
                         SetPieceColor(whiteKingPosition, Color.Transparent);
-                        SetPieceColor(startPiecePosition, Color.Transparent);
+                        SetPieceColor(StartPiecePosition, Color.Transparent);
                         SetPieceColor(piece.PiecePosition, Color.Transparent);
-                        if (newMove.OpponentInCheck(allLegalMoves, startPiecePosition, piece.PiecePosition, ref b2, "W"))
+                        if (newMove.OpponentInCheck(allLegalMoves, StartPiecePosition, piece.PiecePosition, b2, "W"))
                         {
                             string msg = "Check!";
                             DialogResult dResult;
@@ -333,7 +346,7 @@ namespace ChessGame
         }
 
         /******************************************************************
-        *     Sets GUI clicked piece color
+        *     Sets specified clicked piece's color on GUI
         ******************************************************************/
         private void SetPieceColor(int position, Color myColor)
         {
@@ -357,7 +370,7 @@ namespace ChessGame
         /******************************************************************
        *     Gets position on pieceIdBoard of specified piece
        ******************************************************************/
-        public int GetPosition(Int64 piece)
+        public int GetPosition(long piece)
         {
             return (Convert.ToString(piece, 2).Length) - 1;
         }
@@ -399,7 +412,7 @@ namespace ChessGame
             List<Move> list = new List<Move>();
             Board b = new Board(this);
 
-            if (blackInCheck > 0)
+            if (BlackInCheck > 0)
             {
 
                 list = computerRules.GetOutOfCheck(b);
@@ -417,7 +430,7 @@ namespace ChessGame
                 {
                     foreach (Move m in list)
                     {
-                        if (m.To == blackInCheck)
+                        if (m.To == BlackInCheck)
                         {
                             UpdateBlackPiece(m);
                             UpdateBoard(m.To);
@@ -437,7 +450,7 @@ namespace ChessGame
             {
                 if (!returnMove[0].IsCheckMove(returnMove, returnMove[0].From, returnMove[0].To, b, "B"))
                 {
-                    if (returnMove[0].To != lastMove.From || returnMove[0].From != lastMove.To)
+                    if (returnMove[0].To != LastMove.From || returnMove[0].From != LastMove.To)
                     {
                         UpdateBlackPiece(returnMove[0]);
                         UpdateBoard(returnMove[0].To);
@@ -451,7 +464,7 @@ namespace ChessGame
             {
                 if (!returnMove[i].IsCheckMove(returnMove, returnMove[i].From, returnMove[i].To, b, "B"))
                 {
-                    if (returnMove[i].To != lastMove.From || returnMove[i].From != lastMove.To)
+                    if (returnMove[i].To != LastMove.From || returnMove[i].From != LastMove.To)
                     {
                         UpdateBlackPiece(returnMove[i]);
                         UpdateBoard(returnMove[i].To);
@@ -491,17 +504,17 @@ namespace ChessGame
        ******************************************************************/
         private void UpdateBlackPiece(Move newMove)
         {
-            lastMove.To = newMove.To;
-            lastMove.From = newMove.From;
+            LastMove.To = newMove.To;
+            LastMove.From = newMove.From;
 
             SetPieceColor(newMove.From, Color.MediumSeaGreen);
-            startPiecePosition = newMove.From;
+            StartPiecePosition = newMove.From;
             System.Threading.Thread.Sleep(300);
             SetPieceColor(newMove.To, Color.MediumSeaGreen);
             System.Threading.Thread.Sleep(300);
             SetPieceColor(newMove.From, Color.Transparent);
             SetPieceColor(newMove.To, Color.Transparent);
-            blackInCheck = -1;
+            BlackInCheck = -1;
         }
 
         /******************************************************************
@@ -510,9 +523,9 @@ namespace ChessGame
        ******************************************************************/
         internal void UpdateBoard(int piecePosition)
         {
-            Int64 startMask = 0L;
-            Int64 endMask = 0L;
-            startMask = 1L << startPiecePosition;
+            long startMask = 0L;
+            long endMask = 0L;
+            startMask = 1L << StartPiecePosition;
             endMask = 1L << piecePosition;
 
             switch (pieceIdBoard[piecePosition].PieceName)
@@ -557,7 +570,7 @@ namespace ChessGame
                     break;
             }
 
-            switch (pieceIdBoard[startPiecePosition].PieceName)
+            switch (pieceIdBoard[StartPiecePosition].PieceName)
             {
                 case "Wp":
                     WP = (WP | endMask) ^ (startMask);
@@ -612,15 +625,15 @@ namespace ChessGame
         private void UpdatePiece(int piecePosition)
         {
             FirstMouseClick = false;
-            pieceIdBoard[piecePosition].Image = pieceIdBoard[startPiecePosition].Image;
-            pieceIdBoard[startPiecePosition].Image = null;
-            pieceIdBoard[piecePosition].PieceName = pieceIdBoard[startPiecePosition].PieceName;
-            pieceIdBoard[startPiecePosition].PieceName = " ";
-            pieceIdBoard[piecePosition].PieceValue = pieceIdBoard[startPiecePosition].PieceValue;
-            pieceIdBoard[startPiecePosition].PieceValue = 0;
-            if (pieceIdBoard[startPiecePosition].IsFirstMove == true)
+            pieceIdBoard[piecePosition].Image = pieceIdBoard[StartPiecePosition].Image;
+            pieceIdBoard[StartPiecePosition].Image = null;
+            pieceIdBoard[piecePosition].PieceName = pieceIdBoard[StartPiecePosition].PieceName;
+            pieceIdBoard[StartPiecePosition].PieceName = " ";
+            pieceIdBoard[piecePosition].PieceValue = pieceIdBoard[StartPiecePosition].PieceValue;
+            pieceIdBoard[StartPiecePosition].PieceValue = 0;
+            if (pieceIdBoard[StartPiecePosition].IsFirstMove == true)
             {
-                pieceIdBoard[startPiecePosition].IsFirstMove = false;
+                pieceIdBoard[StartPiecePosition].IsFirstMove = false;
             }
         }
 
@@ -635,7 +648,7 @@ namespace ChessGame
             List<Move> list = new List<Move>();
             Board b = new Board(this);
             // Get list of valid black moves
-            list = checkRules.GetComputerRules(b);
+            list = checkRules.GetBlackRules(b);
 
             foreach (Move move in list)
             {
@@ -645,7 +658,7 @@ namespace ChessGame
                     pieceIdBoard[loc].BackColor = Color.Red;
                     pieceIdBoard[loc].Refresh();
                     DialogResult result;
-                    whiteInCheck = move.From;
+                    WhiteInCheck = move.From;
                     result = MessageBox.Show(msg);
                     return true;
                 }
@@ -654,7 +667,7 @@ namespace ChessGame
             int loc2 = (Convert.ToString(BK, 2).Length) - 1;
             Rules checkRules2 = new Rules();
             List<Move> list2 = new List<Move>();
-            list2 = checkRules2.GetRules(b);
+            list2 = checkRules2.GetWhiteRules(b);
 
             foreach (Move move in list2)
             {
@@ -664,7 +677,7 @@ namespace ChessGame
                     pieceIdBoard[loc2].BackColor = Color.Red;
                     pieceIdBoard[loc2].Refresh();
                     DialogResult result;
-                    blackInCheck = move.From;
+                    BlackInCheck = move.From;
                     result = MessageBox.Show(msg);
                     return true;
                 }
@@ -683,7 +696,7 @@ namespace ChessGame
             Rules chessRules = new Rules();
             Board p2 = new Board(this);
 
-            List<Move> results = chessRules.GetRules(p2);
+            List<Move> results = chessRules.GetWhiteRules(p2);
             return results;
 
         }

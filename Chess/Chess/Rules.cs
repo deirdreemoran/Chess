@@ -7,114 +7,104 @@ namespace ChessGame
 {
     public class Rules
     {
-        public List<Move> GetRules(Board b)
+        /******************************************************************
+        *     Generates list of legal moves for all white 
+        *     (human player) pieces
+        ******************************************************************/
+        public List<Move> GetWhiteRules(Board b)
         {
-            List<List<Move>> allMoves = new List<List<Move>>();
-            List<Move> moves = new List<Move>();
-            List<Move> final = new List<Move>();
+            List<Move> pieceMoves = new List<Move>();
+            List<Move> allMoves = new List<Move>();
 
-            if ((moves = GetWhitePawnMoves(b)).Count != 0) { 
-                allMoves.Add(moves);
+            if ((pieceMoves = GetWhitePawnMoves(b)).Count != 0) { 
+                allMoves.AddRange(pieceMoves);
             }
-            if ((moves = CalculateMoves(b.WR, "R", b.Whitepieces, b)).Count != 0) {
-                allMoves.Add(moves);
+            if ((pieceMoves = CalculateWhiteMoves(b.WR, "R", b.WhitePieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
             }
-            if ((moves = CalculateMoves(b.WN, "N", b.Whitepieces, b)).Count != 0) {
-                allMoves.Add(moves);
+            if ((pieceMoves = CalculateWhiteMoves(b.WN, "N", b.WhitePieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
             }
-            if ((moves = CalculateMoves(b.WK, "K", b.Whitepieces, b)).Count != 0) {
-                allMoves.Add(moves);
+            if ((pieceMoves = CalculateWhiteMoves(b.WK, "K", b.WhitePieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
             }
-            if ((moves = CalculateMoves(b.WB, "B", b.Whitepieces, b)).Count != 0) {
-                allMoves.Add(moves);
+            if ((pieceMoves = CalculateWhiteMoves(b.WB, "B", b.WhitePieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
             }
-            if ((moves = CalculateMoves(b.WQ, "R", b.Whitepieces, b)).Count != 0) {
-                allMoves.Add(moves);
+            if ((pieceMoves = CalculateWhiteMoves(b.WQ, "R", b.WhitePieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
             }
-            if ((moves = CalculateMoves(b.WQ, "B", b.Whitepieces, b)).Count != 0) {
-                allMoves.Add(moves);
+            if ((pieceMoves = CalculateWhiteMoves(b.WQ, "B", b.WhitePieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
             }
-
-            foreach (List<Move> list in allMoves)
-            {
-                foreach (Move m in list)
-                {
-                    final.Add(m);
-                    System.Console.WriteLine("FROM: " + m.From + " TO: " + m.To);
-                }
-            }
-
-            return final;
+            return allMoves;
         }
 
-        public List<Move> GetComputerRules(Board b)
+        /******************************************************************
+        *     Generates list of legal moves for all black (computer) pieces
+        ******************************************************************/
+        public List<Move> GetBlackRules(Board b)
         {
-            List<List<Move>> allMoves = new List<List<Move>>();
-            List<Move> moves = new List<Move>();
-            List<Move> final = new List<Move>();
-            if ((moves = GetBlackPawnMoves(b)).Count != 0) {
-                allMoves.Add(moves);
-            }
-            if ((moves = CalculateBlackMoves(b.BR, "R", b.Blackpieces, b)).Count != 0) {
-                allMoves.Add(moves);
-            }
-            if ((moves = CalculateBlackMoves(b.BN, "N", b.Blackpieces, b)).Count != 0) {
-                allMoves.Add(moves);
-            }
-            if ((moves = CalculateBlackMoves(b.BK, "K", b.Blackpieces, b)).Count != 0) {
-                allMoves.Add(moves);
-            }
-            if ((moves = CalculateBlackMoves(b.BB, "B", b.Blackpieces, b)).Count != 0) {
-                allMoves.Add(moves);
-            }
-            if ((moves = CalculateBlackMoves(b.BQ, "R", b.Blackpieces, b)).Count != 0) {
-                allMoves.Add(moves);
-            }
-            if ((moves = CalculateBlackMoves(b.BQ, "B", b.Blackpieces, b)).Count != 0) {
-                allMoves.Add(moves);
-            }
+            List<Move> pieceMoves = new List<Move>();
+            List<Move> allMoves = new List<Move>();
 
-            System.Console.WriteLine();
-            System.Console.WriteLine("computer");
-            foreach (List<Move> list in allMoves)
-            {
-                foreach (Move m in list)
-                {
-                    final.Add(m);
-                    System.Console.WriteLine("FROM: " + m.From + " TO: " + m.To);
-
-                }
+            if ((pieceMoves = GetBlackPawnMoves(b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
             }
-
-            return final;
+            if ((pieceMoves = CalculateBlackMoves(b.BR, "R", b.BlackPieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
+            }
+            if ((pieceMoves = CalculateBlackMoves(b.BN, "N", b.BlackPieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
+            }
+            if ((pieceMoves = CalculateBlackMoves(b.BK, "K", b.BlackPieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
+            }
+            if ((pieceMoves = CalculateBlackMoves(b.BB, "B", b.BlackPieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
+            }
+            if ((pieceMoves = CalculateBlackMoves(b.BQ, "R", b.BlackPieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
+            }
+            if ((pieceMoves = CalculateBlackMoves(b.BQ, "B", b.BlackPieces, b)).Count != 0) {
+                allMoves.AddRange(pieceMoves);
+            }
+            return allMoves;
         }
 
-        private Int64 GetKingMoves(Int64 pieces, Int64 pieceAlliance, Int64 notColumnSeven, Int64 notColumnZero)
+        /******************************************************************
+       *     Generates list of legal moves for a player's king piece
+       ******************************************************************/
+        private long GetKingMoves(long pieces, long pieceAlliance, long notColumnSeven, long notColumnZero)
         {
-            int loc = (Convert.ToString(pieces, 2).Length) - 1;
-            Int64 result = (((pieces & notColumnZero) >> 1) |
-                       ((pieces & notColumnSeven) << 1) |
-                       ((pieces & notColumnSeven) >> 7) |
-                       ((pieces & notColumnZero) << 7) |
-                       ((pieces & notColumnZero) >> 9) |
-                       ((pieces & notColumnSeven) << 9) |
-                       pieces << 8 | pieces >> 8) & (~pieceAlliance);
+            long result = (((pieces & notColumnZero) >> 1) |
+                           ((pieces & notColumnSeven) << 1) |
+                           ((pieces & notColumnSeven) >> 7) |
+                           ((pieces & notColumnZero) << 7) |
+                           ((pieces & notColumnZero) >> 9) |
+                           ((pieces & notColumnSeven) << 9) |
+                            pieces << 8 | pieces >> 8) 
+                            & (~pieceAlliance);
             return result;
         }
 
-        private List<Move> CalculateMoves(Int64 piece, string W, Int64 alliancePieces, Board b)
+        /******************************************************************
+        *    Helper function to generate list of legal moves for all
+        *    white pieces  
+        ******************************************************************/
+        private List<Move> CalculateWhiteMoves(long piece, string W, long alliancePieces, Board b)
         {
             List<Move> allValidMoves = new List<Move>();
-            Int64 pieces = piece & ~(piece - 1);
-            Int64 result = piece;
-            Int64 potentialMove = 0L;
+            long pieces = piece & ~(piece - 1);
+            long result = piece;
+            long potentialMove = 0L;
             int loc = 0;
             while (pieces != 0)
             {
                 loc = (Convert.ToString(pieces, 2).Length) - 1;
                 if (W == "R")
                 {
-                    potentialMove = GetVerticalAndHorizontal(loc, alliancePieces, b.Blackpieces, b);
+                    potentialMove = GetVerticalAndHorizontal(loc, alliancePieces, b.BlackPieces, b);
                     potentialMove &= ~alliancePieces;
                 }
                 if (W == "B")
@@ -129,7 +119,7 @@ namespace ChessGame
                 {
                     if (((potentialMove >> j) & 1) == 1)
                     {
-                        Int64 end = potentialMove & b.Whitepieces;
+                        long end = potentialMove & b.WhitePieces;
                         if (((end >> j) & 1) == 1)
                         {
                             allValidMoves.Add(new Move(j, loc, b.pieceIdBoard[j].PieceValue, true));
@@ -147,20 +137,23 @@ namespace ChessGame
             return allValidMoves;
         }
 
-
-        private List<Move> CalculateBlackMoves(Int64 piece, string W, Int64 alliancePieces, Board b)
+        /******************************************************************
+        *    Helper function to generate list of legal moves for all
+        *    black pieces  
+        ******************************************************************/
+        private List<Move> CalculateBlackMoves(long piece, string W, long alliancePieces, Board b)
         {
             List<Move> allValidMoves = new List<Move>();
-            Int64 pieces = piece & ~(piece - 1);
-            Int64 result = piece;
-            Int64 potentialMove = 0L;
+            long pieces = piece & ~(piece - 1);
+            long result = piece;
+            long potentialMove = 0L;
             int loc = 0;
             while (pieces != 0)
             {
                 loc = (Convert.ToString(pieces, 2).Length) - 1;
                 if (W == "R")
                 {
-                    potentialMove = GetVerticalAndHorizontal(loc, alliancePieces, b.Whitepieces, b);
+                    potentialMove = GetVerticalAndHorizontal(loc, alliancePieces, b.WhitePieces, b);
                     potentialMove &= ~alliancePieces;
                 }
 
@@ -176,7 +169,7 @@ namespace ChessGame
                 {
                     if (((potentialMove >> j) & 1) == 1)
                     {
-                        Int64 end = potentialMove & b.Blackpieces;
+                        long end = potentialMove & b.BlackPieces;
                         if (((end >> j) & 1) == 1)
                         {
                             allValidMoves.Add(new Move(j, loc, b.pieceIdBoard[j].PieceValue, true));
@@ -194,10 +187,14 @@ namespace ChessGame
             return allValidMoves;
         }
 
-        private Int64 GetKnightMoves(int num, Int64 alliancePieces, Board b)
+        /******************************************************************
+        *    Helper function to generate list of legal moves for either
+        *    player's knight pieces 
+        ******************************************************************/
+        private long GetKnightMoves(int num, long alliancePieces, Board b)
         {
-            Int64 numBitMap = 1L << num;
-            Int64 result =
+            long numBitMap = 1L << num;
+            long result =
                      (((numBitMap & b.boardUtils.notColumnZero) << 15) |
                      ((numBitMap & b.boardUtils.notColumnSeven) << 17) |
                      ((numBitMap & b.boardUtils.notColumnSeven) >> 15) |
@@ -205,31 +202,26 @@ namespace ChessGame
                      ((numBitMap & b.boardUtils.emptyColumnZeroToOne) << 6) |
                      ((numBitMap & b.boardUtils.emptyColumnSixToSeven) << 10) |
                      ((numBitMap & b.boardUtils.emptyColumnSixToSeven) >> 6) |
-                     ((numBitMap & b.boardUtils.emptyColumnZeroToOne) >> 10)) & ~alliancePieces;
+                     ((numBitMap & b.boardUtils.emptyColumnZeroToOne) >> 10)) 
+                     & ~alliancePieces;
             return result;
         }
 
+        /******************************************************************
+        *    Helper function to generate list of legal moves for black pawn
+        ******************************************************************/
         private List<Move> GetBlackPawnMoves(Board b)
         {
             List<Move> allValidMoves = new List<Move>();
-            Int64 result = 0L;
-            Int64 result3 = 0L;
-            Int64 result2 = 0L;
-            Int64 result4 = 0L;
-            Int64 result5 = 0L;
-            Int64 result6 = 0L;
-            Int64 result7 = 0L;
             
-            //for all valid forward by one moves
-            result = (b.BP >> 8) & b.EmptySpaces;
-            result2 = (b.BP >> 7) & ~b.Blackpieces & b.Whitepieces & b.boardUtils.notColumnZero;
-            result3 = (b.BP >> 9) & ~b.Blackpieces & b.Whitepieces & b.boardUtils.notColumnSeven;
-            result4 = (b.BP >> 16) & ~b.Whitepieces & ~b.Blackpieces;
-            result5 = (b.BP >> 8) & b.EmptySpaces;
-            result6 = (result5 >> 8) & result4;
-            result7 = ((b.boardUtils.blackFirstMove & b.BP) >> 16) & result6;
+            long result = (b.BP >> 8) & b.EmptySpaces;
+            long result2 = (b.BP >> 7) & ~b.BlackPieces & b.WhitePieces & b.boardUtils.notColumnZero;
+            long result3 = (b.BP >> 9) & ~b.BlackPieces & b.WhitePieces & b.boardUtils.notColumnSeven;
+            long result4 = (b.BP >> 16) & ~b.WhitePieces & ~b.BlackPieces;
+            long result5 = (b.BP >> 8) & b.EmptySpaces;
+            long result6 = (result5 >> 8) & result4;
+            long result7 = ((b.boardUtils.blackFirstMove & b.BP) >> 16) & result6;
 
-            // forward two 
             for (int i = 0; i < Board.BoardSize; i++)
             {
                 if (((result >> i) & 1) == 1) { allValidMoves.Add(new Move(i, i + 8, b.pieceIdBoard[i].PieceValue, false)); }
@@ -240,21 +232,22 @@ namespace ChessGame
             return allValidMoves;
         }
 
-
+        /******************************************************************
+        *    Helper function to generate list of legal moves for white pawn
+        ******************************************************************/
         private List<Move> GetWhitePawnMoves(Board b)
         {
             //TODO en passant, promotions, incorporate knowledge of first move
             List<Move> allValidMoves = new List<Move>();
-            //for all valid one up moves
-            Int64 result = (b.WP << 8) & b.EmptySpaces;
-            Int64 result2 = (b.WP << 7) & b.Blackpieces & b.boardUtils.notColumnZero;
-            Int64 result3 = (b.WP << 9) & b.Blackpieces & b.boardUtils.notColumnSeven;
-            Int64 result4 = (b.WP << 16) & ~b.Whitepieces & ~b.Blackpieces;
-            Int64 result5 = (b.WP << 8) & ~b.Whitepieces & ~b.Blackpieces;
-            Int64 result6 = (result5 << 8) & result4;
-            Int64 result7 = ((b.boardUtils.whiteFirstMove & b.WP) << 16) & result6;
 
-            // result of moving up two and empty up one and blackorempty at up 2
+            long result = (b.WP << 8) & b.EmptySpaces;
+            long result2 = (b.WP << 7) & b.BlackPieces & b.boardUtils.notColumnZero;
+            long result3 = (b.WP << 9) & b.BlackPieces & b.boardUtils.notColumnSeven;
+            long result4 = (b.WP << 16) & ~b.WhitePieces & ~b.BlackPieces;
+            long result5 = (b.WP << 8) & ~b.WhitePieces & ~b.BlackPieces;
+            long result6 = (result5 << 8) & result4;
+            long result7 = ((b.boardUtils.whiteFirstMove & b.WP) << 16) & result6;
+
             for (int i = 0; i < Board.BoardSize; i++)
             {
                 if (((result >> i) & 1) == 1) { allValidMoves.Add(new Move(i, i - 8, b.pieceIdBoard[i].PieceValue, false)); }
@@ -265,49 +258,61 @@ namespace ChessGame
             return allValidMoves;
         }
 
-
-        public Int64 Reverse(Int64 num)
+        /******************************************************************
+        *    Reverses a long int by converting binary number to string, 
+        *    reversing it, then converting back to long int
+        ******************************************************************/
+        public long Reverse(long num)
         {
-            Int64 output = Convert.ToInt64(string.Concat(Convert.ToString(num, 2).PadLeft(64, '0').Reverse()), 2);
+            long output = Convert.ToInt64(string.Concat(Convert.ToString(num, 2).PadLeft(64, '0').Reverse()), 2);
             return output;
         }
 
-        public Int64 GetVerticalAndHorizontal(int num, Int64 whitePieces, Int64 blackPieces, Board b)
+        /******************************************************************
+        *    Generates a bitmap of all vertical and horizontal moves
+        *    for sliding pieces
+        ******************************************************************/
+        public long GetVerticalAndHorizontal(int num, long whitePieces, long blackPieces, Board b)
         {
-            Int64 occupied = blackPieces | whitePieces;
-            Int64 numBitMap = 1L << num;
-            Int64 horizontal = ((blackPieces | whitePieces) - 2 * numBitMap) ^ Reverse(Reverse(occupied) - 2 * Reverse(numBitMap));
-            Int64 vertical = (((blackPieces | whitePieces) & b.boardUtils.columnMasks[num % 8]) -
+            long occupied = blackPieces | whitePieces;
+            long numBitMap = 1L << num;
+            long horizontal = ((blackPieces | whitePieces) - 2 * numBitMap) ^ Reverse(Reverse(occupied) - 2 * Reverse(numBitMap));
+            long vertical = (((blackPieces | whitePieces) & b.boardUtils.columnMasks[num % 8]) -
                     (2 * numBitMap)) ^ Reverse(Reverse(occupied & b.boardUtils.columnMasks[num % 8]) - (2 * Reverse(numBitMap)));
-            Int64 res = (horizontal & b.boardUtils.rowMasks[num / 8]) | (vertical & b.boardUtils.columnMasks[num % 8]);
+            long res = (horizontal & b.boardUtils.rowMasks[num / 8]) | (vertical & b.boardUtils.columnMasks[num % 8]);
             return res;
         }
 
-        public Int64 GetDiagonals(int num, Board b)
+        /******************************************************************
+        *    Generates a bitmap of all diagonal moves for sliding pieces
+        ******************************************************************/
+        public long GetDiagonals(int num, Board b)
         {
-            Int64 occupied = b.Blackpieces | b.Whitepieces;
-            Int64 numBitMap = 1L << num;
-            Int64 possibilitiesDiagonal = ((occupied & b.boardUtils.diagonalMasks1[(num / 8) + (num % 8)]) - (2 * numBitMap)) ^ Reverse(Reverse(occupied & b.boardUtils.diagonalMasks1[(num / 8) + (num % 8)]) - (2 * Reverse(numBitMap)));
-            Int64 possibilitiesAntiDiagonal = ((occupied & b.boardUtils.diagonalMasks2[(num / 8) + 7 - (num % 8)]) - (2 * numBitMap)) ^ Reverse(Reverse(occupied & b.boardUtils.diagonalMasks2[(num / 8) + 7 - (num % 8)]) - (2 * Reverse(numBitMap)));
+            long occupied = b.BlackPieces | b.WhitePieces;
+            long numBitMap = 1L << num;
+            long possibilitiesDiagonal = ((occupied & b.boardUtils.diagonalMasks1[(num / 8) + (num % 8)]) - (2 * numBitMap)) ^ Reverse(Reverse(occupied & b.boardUtils.diagonalMasks1[(num / 8) + (num % 8)]) - (2 * Reverse(numBitMap)));
+            long possibilitiesAntiDiagonal = ((occupied & b.boardUtils.diagonalMasks2[(num / 8) + 7 - (num % 8)]) - (2 * numBitMap)) ^ Reverse(Reverse(occupied & b.boardUtils.diagonalMasks2[(num / 8) + 7 - (num % 8)]) - (2 * Reverse(numBitMap)));
             return (possibilitiesDiagonal & b.boardUtils.diagonalMasks1[(num / 8) + (num % 8)]) | (possibilitiesAntiDiagonal & b.boardUtils.diagonalMasks2[(num / 8) + 7 - (num % 8)]);
         }
 
+        /******************************************************************
+        *    Generates all valid moves to get out of check
+        ******************************************************************/
         public List<Move> GetOutOfCheck(Board b)
         {
             List<Move> validMove = new List<Move>();
 
             int loc = (Convert.ToString(b.BK, 2).Length) - 1;
 
-            // generate potential moves for all current player pieces
             List<Move> list = new List<Move>();
             Rules newRules = new Rules();
             bool atLeastOneAttack = false;
-            list = newRules.GetComputerRules(b);
+            list = newRules.GetBlackRules(b);
 
             foreach (Move move in list)
             {
-                Int64 startMask = 1L << move.To;
-                Int64 endMask = 1L << move.From;
+                long startMask = 1L << move.To;
+                long endMask = 1L << move.From;
 
                 switch (b.pieceIdBoard[move.From].PieceName)
                 {
@@ -355,34 +360,28 @@ namespace ChessGame
                 }
 
 
-                b.Whitepieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
-                b.Blackpieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
-
-                b.EmptySpaces = ~(b.Whitepieces | b.Blackpieces);
+                b.WhitePieces = b.WP | b.WB | b.WK | b.WN | b.WQ | b.WR;
+                b.BlackPieces = b.BP | b.BB | b.BK | b.BN | b.BQ | b.BR;
+                b.EmptySpaces = ~(b.WhitePieces | b.BlackPieces);
 
                 List<Move> list2 = new List<Move>();
                 Rules newRules2 = new Rules();
-                list2 = newRules2.GetRules(b);
+                list2 = newRules2.GetWhiteRules(b);
 
-
-                foreach (Move move2 in list2)
-                {
-                    if (((Convert.ToString(b.BK, 2).Length) - 1) == move2.To)
-                    {
+                foreach (Move move2 in list2) { 
+                    if (((Convert.ToString(b.BK, 2).Length) - 1) == move2.To) { 
                         atLeastOneAttack = true;
                     }
                 }
 
-                if (!atLeastOneAttack)
-                {
+                if (!atLeastOneAttack) { 
                     validMove.Add(new Move(move.To, move.From, b.pieceIdBoard[move.To].PieceValue, false));
                 }
                 atLeastOneAttack = false;
             }
+
             return validMove;
         }
-
-
-
+        
     }
 }
