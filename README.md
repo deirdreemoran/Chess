@@ -1,2 +1,2 @@
 # Chess
-C# .NET WinForms chess application with user interface 
+C# .NET WinForms chess engine with user interface 
