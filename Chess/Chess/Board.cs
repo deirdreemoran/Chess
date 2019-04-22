@@ -280,9 +280,8 @@ namespace ChessGame
         private void PieceClicked(object sender, EventArgs e)
         {           
             Piece piece = sender as Piece;
-
             //if this is initial piece to move from, highlight piece
-            if (!FirstMouseClick)
+            if (!FirstMouseClick) 
             {
                 pieceBorder[piece.PiecePosition].BackColor = Color.Chocolate;
                 pieceIdBoard[piece.PiecePosition].BackColor = Color.Chocolate;

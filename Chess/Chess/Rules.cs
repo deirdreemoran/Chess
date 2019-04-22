@@ -7,6 +7,7 @@ namespace ChessGame
 {
     public class Rules
     {
+
         /******************************************************************
         *     Generates list of legal moves for all white 
         *     (human player) pieces

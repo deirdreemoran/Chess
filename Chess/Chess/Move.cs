@@ -61,8 +61,7 @@ namespace ChessGame
             List<Move> list2 = new List<Move>();
             Rules newRules2 = new Rules();
 
-            if (player == "W")
-            {
+            if (player == "W") { 
                 list2 = newRules2.GetBlackRules(b);
                 // if white king position is same as black's destination position, 
                 // this would result in check, return true
